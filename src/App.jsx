@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { loadState, saveState } from "./lib/storage";
 import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
+import { UNIDADES, hoje, uid } from "./lib/util";
+import ImportExcel from "./ImportExcel";
 
 // ————————————————————————————————————————————————
 //  PRECIFICA — custo, markup e preço por canal
@@ -11,20 +13,13 @@ import { C, globalCss } from "./theme";
 //  A lógica de cálculo é idêntica à versão anterior.
 // ————————————————————————————————————————————————
 
-const UNIDADES = ["kg", "g", "L", "ml", "un", "m2"];
 const brl = (n) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(isFinite(n) ? n : 0);
 const brlSec = (n) => new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(isFinite(n) ? n : 0);
 const pct = (n) => `${(isFinite(n) ? n : 0).toFixed(1)}%`;
 const num = (n, d = 0) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: d }).format(isFinite(n) ? n : 0);
 const fator = (u) => (u === "kg" || u === "L" ? 1000 : 1);
 const baseUnit = (u) => (u === "kg" || u === "g" ? "g" : u === "L" || u === "ml" ? "ml" : u === "m2" ? "m²" : "un");
-const hoje = () => new Date().toISOString().slice(0, 10);
 const dataBR = (iso) => (iso ? iso.split("-").reverse().slice(0, 2).join("/") : "");
-
-const uid = () =>
-  typeof crypto !== "undefined" && crypto.randomUUID
-    ? crypto.randomUUID()
-    : "id-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
 
 const ABAS = [{ id: "painel", l: "Painel" }, { id: "produtos", l: "Produtos" }, { id: "insumos", l: "Insumos" }, { id: "ajustes", l: "Ajustes" }];
 
@@ -740,6 +735,7 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
   const [editando, setEditando] = useState(null);
   const [confirmar, setConfirmar] = useState(null);
   const [busca, setBusca] = useState("");
+  const [importOpen, setImportOpen] = useState(false);
 
   const add = () => {
     if (!novo.nome || !novo.precoPacote || !novo.qtdPacote) return;
@@ -795,11 +791,19 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
       </div>
 
       <Sec acao={
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
-          style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <button className="btn lbl" onClick={() => setImportOpen(true)}
+            style={{ background: "none", border: "none", padding: 0, color: C.ink, textDecoration: "underline" }}>
+            Importar do Excel
+          </button>
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
+            style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
+        </div>
       }>
         {lista.length} insumo{lista.length !== 1 ? "s" : ""}
       </Sec>
+
+      {importOpen && <ImportExcel insumos={insumos} onSave={onSave} onClose={() => setImportOpen(false)} />}
 
       <div className="card" style={{ padding: "4px 16px 8px" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
