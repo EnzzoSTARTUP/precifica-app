@@ -767,6 +767,11 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
 
   return (
     <div>
+      <button className="btn" onClick={() => setImportOpen(true)}
+        style={{ width: "100%", background: C.ink, color: "#fff", border: "none", borderRadius: 10, padding: "16px 18px", fontSize: 15.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 26 }}>
+        ⬆ Importar do Excel
+      </button>
+
       <Sec>Novo insumo</Sec>
       <div style={{ paddingTop: 14 }}>
         <div className="fld" style={{ marginBottom: 9 }}>
@@ -791,14 +796,8 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
       </div>
 
       <Sec acao={
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <button className="btn lbl" onClick={() => setImportOpen(true)}
-            style={{ background: "none", border: "none", padding: 0, color: C.ink, textDecoration: "underline" }}>
-            Importar do Excel
-          </button>
-          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
-            style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
-        </div>
+        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
+          style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
       }>
         {lista.length} insumo{lista.length !== 1 ? "s" : ""}
       </Sec>
