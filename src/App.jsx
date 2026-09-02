@@ -4,6 +4,7 @@ import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
 import { UNIDADES, hoje, uid } from "./lib/util";
 import ImportExcel from "./ImportExcel";
+import ImportProdutosExcel from "./ImportProdutosExcel";
 
 // ————————————————————————————————————————————————
 //  PRECIFICA — custo, markup e preço por canal
@@ -112,7 +113,7 @@ export default function App() {
       return s + custoInsumo(ins) * bruto;
     }, 0);
     const rend = p.rendimento || 1;
-    const custoUnid = custoInsumos / rend + (p.maoDeObra || 0);
+    const custoUnid = custoInsumos / rend + (p.maoDeObra || 0) + (p.outrosCustos || 0);
 
     const fixasPct = calcFixasPct(cfg);
     const base = cfg.impostos + fixasPct + cfg.lucro;
@@ -214,8 +215,9 @@ export default function App() {
             <>
               {tab === "painel" && <Painel produtos={produtos} calc={calc} cfg={cfg} onOpen={setAberto} />}
               {tab === "produtos" && (
-                <Produtos produtos={produtos} calc={calc} onOpen={setAberto}
-                  onNew={() => { const np = { id: uid(), nome: "Novo produto", rendimento: 1, maoDeObra: 0, precosCanal: {}, itens: [] }; saveProd([np, ...produtos]); setAberto(np.id); }} />
+                <Produtos produtos={produtos} insumos={insumos} canais={canais} calc={calc} onOpen={setAberto}
+                  onNew={() => { const np = { id: uid(), nome: "Novo produto", rendimento: 1, maoDeObra: 0, precosCanal: {}, itens: [] }; saveProd([np, ...produtos]); setAberto(np.id); }}
+                  onSaveProdutos={saveProd} onSaveCanais={saveCanais} />
               )}
               {tab === "insumos" && <Insumos insumos={insumos} onSave={saveIns} custoInsumo={custoInsumo} usoDoInsumo={usoDoInsumo} />}
               {tab === "ajustes" && <Ajustes cfg={cfg} onSaveCfg={saveCfg} canais={canais} onSaveCanais={saveCanais} onRemoverCanal={removerCanal} produtos={produtos} />}
@@ -374,9 +376,21 @@ function Painel({ produtos, calc, cfg, onOpen }) {
 
 // ————————————————————————— produtos —————————————————————————
 
-function Produtos({ produtos, calc, onOpen, onNew }) {
+function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveProdutos, onSaveCanais }) {
+  const [importOpen, setImportOpen] = useState(false);
+
   return (
     <div>
+      <button className="btn" onClick={() => setImportOpen(true)}
+        style={{ width: "100%", background: C.ink, color: "#fff", border: "none", borderRadius: 10, padding: "16px 18px", fontSize: 15.5, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 26 }}>
+        ⬆ Importar do Excel
+      </button>
+
+      {importOpen && (
+        <ImportProdutosExcel produtos={produtos} insumos={insumos} canais={canais}
+          onSaveProdutos={onSaveProdutos} onSaveCanais={onSaveCanais} onClose={() => setImportOpen(false)} />
+      )}
+
       <Sec acao={<button className="btn lbl" onClick={onNew} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13.5, fontWeight: 700 }}>Novo produto</button>}>
         {produtos.length} produto{produtos.length !== 1 ? "s" : ""}
       </Sec>
@@ -488,6 +502,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
       <div className="mono" style={{ fontSize: 13, color: C.ink45, paddingTop: 9 }}>
         insumos {brlSec(r.custoInsumos / (local.rendimento || 1))}
         {local.maoDeObra > 0 && ` + mão de obra ${brlSec(local.maoDeObra)}`}
+        {local.outrosCustos > 0 && ` + outros custos ${brlSec(local.outrosCustos)}`}
       </div>
 
       <Sec>Detalhes (opcional)</Sec>
@@ -500,6 +515,11 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
           <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
           <input type="number" inputMode="decimal" className="inp numi" value={local.maoDeObra || ""} placeholder="0"
             onChange={(e) => set({ maoDeObra: parseFloat(e.target.value) || 0 })} />
+        </Campo>
+        <Campo rot="Outros custos por unidade">
+          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+          <input type="number" inputMode="decimal" className="inp numi" value={local.outrosCustos || ""} placeholder="0"
+            onChange={(e) => set({ outrosCustos: parseFloat(e.target.value) || 0 })} />
         </Campo>
       </div>
 

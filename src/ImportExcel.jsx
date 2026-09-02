@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { C } from "./theme";
-import { UNIDADES, hoje, uid } from "./lib/util";
+import { UNIDADES, hoje, uid, normalizarTexto } from "./lib/util";
 
 const brl = (n) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(isFinite(n) ? n : 0);
 
@@ -113,11 +113,11 @@ export default function ImportExcel({ insumos, onSave, onClose }) {
   const invalidas = linhasParsed.filter((l) => !l.valido);
 
   const confirmarImportacao = () => {
-    const porNome = new Map(insumos.map((i) => [i.nome.trim().toLowerCase(), i]));
+    const porNome = new Map(insumos.map((i) => [normalizarTexto(i.nome), i]));
     let lista = [...insumos];
     let criados = 0, atualizados = 0;
     for (const imp of validas) {
-      const chave = imp.nome.trim().toLowerCase();
+      const chave = normalizarTexto(imp.nome);
       const existente = porNome.get(chave);
       if (existente) {
         const idx = lista.findIndex((x) => x.id === existente.id);
