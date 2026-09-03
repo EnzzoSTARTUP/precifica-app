@@ -3,8 +3,7 @@ import { loadState, saveState } from "./lib/storage";
 import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
 import { UNIDADES, hoje, uid } from "./lib/util";
-import ImportExcel from "./ImportExcel";
-import ImportProdutosExcel from "./ImportProdutosExcel";
+import ImportUnificado from "./ImportUnificado";
 
 // ————————————————————————————————————————————————
 //  PRECIFICA — custo, markup e preço por canal
@@ -217,9 +216,12 @@ export default function App() {
               {tab === "produtos" && (
                 <Produtos produtos={produtos} insumos={insumos} canais={canais} calc={calc} onOpen={setAberto}
                   onNew={() => { const np = { id: uid(), nome: "Novo produto", rendimento: 1, maoDeObra: 0, precosCanal: {}, itens: [] }; saveProd([np, ...produtos]); setAberto(np.id); }}
-                  onSaveProdutos={saveProd} onSaveCanais={saveCanais} />
+                  onSaveInsumos={saveIns} onSaveProdutos={saveProd} onSaveCanais={saveCanais} />
               )}
-              {tab === "insumos" && <Insumos insumos={insumos} onSave={saveIns} custoInsumo={custoInsumo} usoDoInsumo={usoDoInsumo} />}
+              {tab === "insumos" && (
+                <Insumos insumos={insumos} onSave={saveIns} custoInsumo={custoInsumo} usoDoInsumo={usoDoInsumo}
+                  produtos={produtos} canais={canais} onSaveProdutos={saveProd} onSaveCanais={saveCanais} />
+              )}
               {tab === "ajustes" && <Ajustes cfg={cfg} onSaveCfg={saveCfg} canais={canais} onSaveCanais={saveCanais} onRemoverCanal={removerCanal} produtos={produtos} />}
             </>
           )}
@@ -376,7 +378,7 @@ function Painel({ produtos, calc, cfg, onOpen }) {
 
 // ————————————————————————— produtos —————————————————————————
 
-function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveProdutos, onSaveCanais }) {
+function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumos, onSaveProdutos, onSaveCanais }) {
   const [importOpen, setImportOpen] = useState(false);
 
   return (
@@ -387,8 +389,8 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveProdut
       </button>
 
       {importOpen && (
-        <ImportProdutosExcel produtos={produtos} insumos={insumos} canais={canais}
-          onSaveProdutos={onSaveProdutos} onSaveCanais={onSaveCanais} onClose={() => setImportOpen(false)} />
+        <ImportUnificado produtos={produtos} insumos={insumos} canais={canais}
+          onSaveInsumos={onSaveInsumos} onSaveProdutos={onSaveProdutos} onSaveCanais={onSaveCanais} onClose={() => setImportOpen(false)} />
       )}
 
       <Sec acao={<button className="btn lbl" onClick={onNew} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13.5, fontWeight: 700 }}>Novo produto</button>}>
@@ -750,7 +752,7 @@ function Campo({ rot, children }) {
 
 // ————————————————————————— insumos —————————————————————————
 
-function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
+function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo, produtos, canais, onSaveProdutos, onSaveCanais }) {
   const [novo, setNovo] = useState({ nome: "", unidade: "kg", precoPacote: "", qtdPacote: "" });
   const [editando, setEditando] = useState(null);
   const [confirmar, setConfirmar] = useState(null);
@@ -822,7 +824,10 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo }) {
         {lista.length} insumo{lista.length !== 1 ? "s" : ""}
       </Sec>
 
-      {importOpen && <ImportExcel insumos={insumos} onSave={onSave} onClose={() => setImportOpen(false)} />}
+      {importOpen && (
+        <ImportUnificado insumos={insumos} produtos={produtos} canais={canais}
+          onSaveInsumos={onSave} onSaveProdutos={onSaveProdutos} onSaveCanais={onSaveCanais} onClose={() => setImportOpen(false)} />
+      )}
 
       <div className="card" style={{ padding: "4px 16px 8px" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
         <thead>
