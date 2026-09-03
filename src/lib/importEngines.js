@@ -100,15 +100,35 @@ export function classificarAbas(sheets) {
   };
 }
 
+// pega "150ml", "500 ML", "1,5kg" etc. escrito dentro do nome do item
+function extrairQuantidadeDoNome(nome) {
+  const m = String(nome || "").match(/(\d+(?:[.,]\d+)?)\s*(ml|kg|g|l)\b/i);
+  if (!m) return null;
+  const qtd = parseFloat(m[1].replace(",", "."));
+  if (!isFinite(qtd) || qtd <= 0) return null;
+  const u = m[2].toLowerCase();
+  const unidade = u === "l" ? "L" : u === "kg" ? "kg" : u === "g" ? "g" : "ml";
+  return { qtd, unidade };
+}
+
 export function parseInsumosLinhas(linhasDados, mapa) {
   const linhas = linhasDados.map((linha) => {
     const nomeRaw = mapa.nome != null ? linha[mapa.nome] : null;
     const nome = nomeRaw != null ? String(nomeRaw).trim() : "";
     const preco = mapa.preco != null ? parseNumeroBR(linha[mapa.preco]) : NaN;
     const unidadeDetectada = mapa.unidade != null ? normalizarUnidade(linha[mapa.unidade]) : null;
-    const unidade = unidadeDetectada || "kg";
+    let unidade = unidadeDetectada || "kg";
     const qtdRaw = mapa.qtd != null ? parseNumeroBR(linha[mapa.qtd]) : 1;
-    const qtdPacote = isFinite(qtdRaw) && qtdRaw > 0 ? qtdRaw : 1;
+    let qtdPacote = isFinite(qtdRaw) && qtdRaw > 0 ? qtdRaw : 1;
+
+    // "un" genérico sem quantidade real (ex: preço "por dose"/"por taça") — se o nome
+    // do item já traz a medida (ex: "Vinho branco — taça 150ml"), usa essa informação
+    // em vez de tratar como 1 unidade sem base de custo nenhuma
+    if (unidade === "un" && qtdPacote === 1) {
+      const extraido = extrairQuantidadeDoNome(nome);
+      if (extraido) { unidade = extraido.unidade; qtdPacote = extraido.qtd; }
+    }
+
     const valido = nome.length > 0 && isFinite(preco) && preco > 0;
     return { nome, unidade, precoPacote: preco, qtdPacote, valido };
   }).filter((l) => l.nome || isFinite(l.precoPacote));
