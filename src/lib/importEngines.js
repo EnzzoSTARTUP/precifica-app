@@ -132,7 +132,17 @@ export function parseInsumosLinhas(linhasDados, mapa) {
     const valido = nome.length > 0 && isFinite(preco) && preco > 0;
     return { nome, unidade, precoPacote: preco, qtdPacote, valido };
   }).filter((l) => l.nome || isFinite(l.precoPacote));
-  return { validas: linhas.filter((l) => l.valido), invalidas: linhas.filter((l) => !l.valido) };
+
+  // a mesma planilha às vezes lista o mesmo insumo mais de uma vez (com preço/unidade
+  // diferentes entre as ocorrências) — usa só a última ocorrência de cada nome, e não
+  // deixa as duplicatas virarem entradas falsas de "mudança de preço" no histórico
+  const validasBrutas = linhas.filter((l) => l.valido);
+  const porNome = new Map();
+  for (const l of validasBrutas) porNome.set(normalizarTexto(l.nome), l);
+  const validas = [...porNome.values()];
+  const duplicatas = validasBrutas.length - validas.length;
+
+  return { validas, invalidas: linhas.filter((l) => !l.valido), duplicatas };
 }
 
 function agruparBlocos(linhasDados, colNome) {

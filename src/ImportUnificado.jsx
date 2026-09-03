@@ -151,6 +151,11 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
                 <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
                   <span className="mono tag" style={{ background: C.okSoft, color: C.ok }}>{insumosResult.validas.length} detectados</span>
                   {insumosResult.invalidas.length > 0 && <span className="mono tag" style={{ background: C.warnSoft, color: C.warn }}>{insumosResult.invalidas.length} ignorados</span>}
+                  {insumosResult.duplicatas > 0 && (
+                    <span className="mono tag" style={{ background: C.warnSoft, color: C.warn }}>
+                      {insumosResult.duplicatas} duplicado{insumosResult.duplicatas !== 1 ? "s" : ""} na planilha — usando a última ocorrência
+                    </span>
+                  )}
                 </div>
                 <div style={{ border: `1px solid ${C.rule}`, borderRadius: 10, maxHeight: 160, overflowY: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
