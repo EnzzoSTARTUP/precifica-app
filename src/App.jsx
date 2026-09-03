@@ -294,10 +294,12 @@ function Aviso({ children, forte }) {
 // ————————————————————————— painel —————————————————————————
 
 function Painel({ produtos, calc, cfg, onOpen }) {
+  const [busca, setBusca] = useState("");
   const fixas = totalFixas(cfg);
-  const linhas = produtos.map((p) => ({ p, r: calc(p) })).filter((x) => x.r?.prim?.definido > 0)
+  const todasLinhas = produtos.map((p) => ({ p, r: calc(p) })).filter((x) => x.r?.prim?.definido > 0)
     .sort((a, b) => b.r.prim.mcCanalPct - a.r.prim.mcCanalPct);
-  const mcMedia = linhas.length ? linhas.reduce((s, x) => s + x.r.prim.mcCanalPct, 0) / linhas.length : 0;
+  const linhas = busca ? todasLinhas.filter((x) => x.p.nome.toLowerCase().includes(busca.toLowerCase())) : todasLinhas;
+  const mcMedia = todasLinhas.length ? todasLinhas.reduce((s, x) => s + x.r.prim.mcCanalPct, 0) / todasLinhas.length : 0;
   const pe = mcMedia > 0 ? fixas / (mcMedia / 100) : 0;
   const folga = cfg.faturamentoMedio > 0 && pe > 0 ? ((cfg.faturamentoMedio - pe) / cfg.faturamentoMedio) * 100 : 0;
   const usaFixas = cfg.modoFixas === "auto" && fixas > 0;
@@ -341,9 +343,18 @@ function Painel({ produtos, calc, cfg, onOpen }) {
         </div>
       )}
 
-      <Sec>Quanto cada produto deixa</Sec>
-      {linhas.length === 0 ? (
+      <Sec acao={
+        todasLinhas.length > 0 && (
+          <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
+            style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
+        )
+      }>
+        Quanto cada produto deixa
+      </Sec>
+      {todasLinhas.length === 0 ? (
         <div style={{ fontSize: 13.5, color: C.ink70, paddingTop: 14, lineHeight: 1.55 }}>Defina o preço dos produtos no canal principal para ver o ranking.</div>
+      ) : linhas.length === 0 ? (
+        <div style={{ fontSize: 13.5, color: C.ink70, paddingTop: 14, lineHeight: 1.55 }}>Nenhum produto encontrado pra "{busca}".</div>
       ) : (
         <div className="card" style={{ padding: "4px 16px 8px" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -380,6 +391,8 @@ function Painel({ produtos, calc, cfg, onOpen }) {
 
 function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumos, onSaveProdutos, onSaveCanais }) {
   const [importOpen, setImportOpen] = useState(false);
+  const [busca, setBusca] = useState("");
+  const lista = busca ? produtos.filter((p) => p.nome.toLowerCase().includes(busca.toLowerCase())) : produtos;
 
   return (
     <div>
@@ -393,7 +406,15 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
           onSaveInsumos={onSaveInsumos} onSaveProdutos={onSaveProdutos} onSaveCanais={onSaveCanais} onClose={() => setImportOpen(false)} />
       )}
 
-      <Sec acao={<button className="btn lbl" onClick={onNew} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13.5, fontWeight: 700 }}>Novo produto</button>}>
+      <Sec acao={
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          {produtos.length > 0 && (
+            <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
+              style={{ border: "none", borderBottom: `1px solid ${C.rule}`, background: "transparent", outline: "none", fontSize: 12, padding: "0 0 2px", width: 90, textAlign: "right" }} />
+          )}
+          <button className="btn lbl" onClick={onNew} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13.5, fontWeight: 700 }}>Novo produto</button>
+        </div>
+      }>
         {produtos.length} produto{produtos.length !== 1 ? "s" : ""}
       </Sec>
 
@@ -407,6 +428,8 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
             </div>
           ))}
         </div>
+      ) : lista.length === 0 ? (
+        <div style={{ fontSize: 13.5, color: C.ink70, paddingTop: 14, lineHeight: 1.55 }}>Nenhum produto encontrado pra "{busca}".</div>
       ) : (
         <div className="card" style={{ padding: "4px 16px 8px" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
           <thead>
@@ -418,7 +441,7 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
             </tr>
           </thead>
           <tbody>
-            {produtos.map((p) => {
+            {lista.map((p) => {
               const r = calc(p);
               const prim = r.prim;
               return (
