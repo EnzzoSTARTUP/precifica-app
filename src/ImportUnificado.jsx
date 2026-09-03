@@ -93,7 +93,7 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
 
     let prodMerge = { criados: 0, atualizados: 0 };
     if (produtosResult.validos.length > 0) {
-      prodMerge = mergeProdutos(produtos, produtosResult.validos, canalId);
+      prodMerge = mergeProdutos(produtos, produtosResult.validos, canalId, mapaProdutos.ingrediente != null);
       onSaveProdutos(prodMerge.lista);
     }
 
@@ -101,6 +101,7 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
       insumosCriados: insumosMerge.criados, insumosAtualizados: insumosMerge.atualizados,
       produtosCriados: prodMerge.criados, produtosAtualizados: prodMerge.atualizados,
       ingredientesFaltando: produtosResult.validos.filter((p) => p.naoEncontrados > 0).length,
+      custosSuspeitos: produtosResult.validos.filter((p) => p.custoImplausivel > 0).length,
     });
     setEtapa("feito");
   };
@@ -187,6 +188,11 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
                       {produtosResult.validos.filter((p) => p.naoEncontrados > 0).length} com ingrediente não encontrado
                     </span>
                   )}
+                  {produtosResult.validos.some((p) => p.custoImplausivel > 0) && (
+                    <span className="mono tag" style={{ background: C.warnSoft, color: C.warn }}>
+                      {produtosResult.validos.filter((p) => p.custoImplausivel > 0).length} com custo de ingrediente implausível
+                    </span>
+                  )}
                 </div>
                 <div style={{ border: `1px solid ${C.rule}`, borderRadius: 10, maxHeight: 220, overflowY: "auto" }}>
                   <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -194,8 +200,9 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
                       {produtosResult.validos.map((p, i) => (
                         <tr key={i} className="row">
                           <td style={{ padding: "6px 10px", fontSize: 13 }}>{p.nome}</td>
-                          <td style={{ padding: "6px 10px", fontSize: 12, color: p.naoEncontrados > 0 ? C.red : C.ink45 }}>
+                          <td style={{ padding: "6px 10px", fontSize: 12, color: p.naoEncontrados > 0 || p.custoImplausivel > 0 ? C.red : C.ink45 }}>
                             {p.itens.length > 0 ? p.itens.map((it) => it._nome).join(", ") : "—"}
+                            {p.custoImplausivel > 0 && ` (ingrediente ignorado — custo maior que o preço de venda, confira a unidade)`}
                           </td>
                           <td className="mono" style={{ padding: "6px 10px", fontSize: 13, textAlign: "right" }}>{brl(p.preco)}</td>
                         </tr>
@@ -237,6 +244,11 @@ export default function ImportUnificado({ insumos, produtos, canais, onSaveInsum
               {resultado.ingredientesFaltando > 0 && (
                 <div style={{ fontSize: 13, color: C.warn, marginTop: 8, fontWeight: 600 }}>
                   {resultado.ingredientesFaltando} produto{resultado.ingredientesFaltando !== 1 ? "s" : ""} com ingrediente não localizado — vale conferir manualmente.
+                </div>
+              )}
+              {resultado.custosSuspeitos > 0 && (
+                <div style={{ fontSize: 13, color: C.warn, marginTop: 8, fontWeight: 600 }}>
+                  {resultado.custosSuspeitos} produto{resultado.custosSuspeitos !== 1 ? "s" : ""} com ingrediente ignorado por custo implausível (provável unidade incompatível na planilha) — confira manualmente.
                 </div>
               )}
             </div>

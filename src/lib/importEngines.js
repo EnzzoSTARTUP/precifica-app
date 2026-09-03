@@ -132,6 +132,9 @@ function agruparBlocos(linhasDados, colNome) {
   return blocos;
 }
 
+const fatorUnidade = (u) => (u === "kg" || u === "L" ? 1000 : 1);
+const custoBaseInsumo = (ins) => ins.precoPacote / (ins.qtdPacote * fatorUnidade(ins.unidade));
+
 export function parseProdutosBlocos(linhasDados, mapa, insumosPorNome) {
   const blocos = agruparBlocos(linhasDados, mapa.nome);
   const parsed = blocos.map((bloco) => {
@@ -140,6 +143,7 @@ export function parseProdutosBlocos(linhasDados, mapa, insumosPorNome) {
     let outrosCustos = 0;
     const itens = [];
     let naoEncontrados = 0;
+    let custoImplausivel = 0;
 
     for (const linha of bloco.linhas) {
       const ingredienteRaw = mapa.ingrediente != null ? linha[mapa.ingrediente] : null;
@@ -149,8 +153,17 @@ export function parseProdutosBlocos(linhasDados, mapa, insumosPorNome) {
 
       if (ingredienteNome && isFinite(gramatura) && gramatura > 0) {
         const insumo = insumosPorNome.get(normalizarTexto(ingredienteNome));
-        if (insumo) itens.push({ insumoId: insumo.id, qtd: gramatura, perda: 0, _nome: insumo.nome });
-        else {
+        if (insumo) {
+          // custo do ingrediente sozinho maior que o preço de venda do prato inteiro quase
+          // sempre indica unidade/quantidade incompatível na planilha de origem (ex: preço
+          // "por dose" multiplicado por uma quantidade em ml) — não itemiza às cegas
+          const custoItem = custoBaseInsumo(insumo) * gramatura;
+          if (isFinite(preco) && preco > 0 && isFinite(custoItem) && custoItem > preco) {
+            custoImplausivel++;
+          } else {
+            itens.push({ insumoId: insumo.id, qtd: gramatura, perda: 0, _nome: insumo.nome });
+          }
+        } else {
           naoEncontrados++;
           if (isFinite(outrosVal) && outrosVal > 0) outrosCustos += outrosVal;
         }
@@ -160,7 +173,7 @@ export function parseProdutosBlocos(linhasDados, mapa, insumosPorNome) {
     }
 
     const valido = bloco.nome.length > 0 && isFinite(preco) && preco > 0;
-    return { nome: bloco.nome, preco, itens, outrosCustos, naoEncontrados, valido };
+    return { nome: bloco.nome, preco, itens, outrosCustos, naoEncontrados, custoImplausivel, valido };
   });
   return { validos: parsed.filter((p) => p.valido), invalidos: parsed.filter((p) => !p.valido) };
 }
@@ -192,7 +205,7 @@ export function mergeInsumos(existentes, validas) {
   return { lista, criados, atualizados };
 }
 
-export function mergeProdutos(existentes, validos, canalId) {
+export function mergeProdutos(existentes, validos, canalId, ingredienteMapeado) {
   const porNome = new Map(existentes.map((p) => [normalizarTexto(p.nome), p]));
   let lista = [...existentes];
   let criados = 0, atualizados = 0;
@@ -204,7 +217,10 @@ export function mergeProdutos(existentes, validos, canalId) {
       const idx = lista.findIndex((x) => x.id === existente.id);
       lista[idx] = {
         ...existente,
-        itens: itensLimpos.length ? itensLimpos : existente.itens,
+        // se essa importação nem tentou mapear ingrediente, preserva o que já existia;
+        // se tentou (mesmo resultando em lista vazia por causa da checagem de custo
+        // implausível), o resultado novo é a informação mais confiável que temos agora
+        itens: ingredienteMapeado ? itensLimpos : (itensLimpos.length ? itensLimpos : existente.itens),
         outrosCustos: imp.outrosCustos,
         precosCanal: { ...(existente.precosCanal || {}), ...(canalId ? { [canalId]: imp.preco } : {}) },
       };
