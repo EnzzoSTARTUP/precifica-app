@@ -6,7 +6,7 @@ import { UNIDADES, hoje, uid } from "./lib/util";
 import ImportUnificado from "./ImportUnificado";
 
 // ————————————————————————————————————————————————
-//  PRECIFICA — custo, markup e preço por canal
+//  PREZO — custo, markup e preço por canal
 //  Visual: claro, robusto e legível. Superfícies brancas, tipos grossos,
 //  cores de status (verde/âmbar/vermelho) para leitura imediata.
 //  Montserrat 500–800 · números tabulares em peso 700
@@ -268,7 +268,7 @@ export default function App() {
 function Marca() {
   return (
     <div>
-      <div className="serif" style={{ fontSize: 24, lineHeight: 1 }}>Precifica</div>
+      <div className="serif" style={{ fontSize: 24, lineHeight: 1 }}>Prezo</div>
       <div className="lbl" style={{ marginTop: 4, fontSize: 12.5 }}>Custo · Markup · Preço</div>
     </div>
   );

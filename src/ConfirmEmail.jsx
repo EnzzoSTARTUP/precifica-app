@@ -37,7 +37,7 @@ export default function ConfirmEmail() {
     <div style={{ background: C.paper, minHeight: "100vh", color: C.ink, fontFamily: "Montserrat, system-ui, sans-serif", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <style>{globalCss}</style>
       <div className="card" style={{ padding: 28, width: "100%", maxWidth: 360, textAlign: "center" }}>
-        <div className="serif" style={{ fontSize: 22, marginBottom: 14 }}>Precifica</div>
+        <div className="serif" style={{ fontSize: 22, marginBottom: 14 }}>Prezo</div>
         {status === "confirmando" && <div style={{ fontSize: 14, color: C.ink70 }}>Confirmando seu e-mail…</div>}
         {status === "ok" && <div style={{ fontSize: 14, color: C.ok, fontWeight: 600 }}>E-mail confirmado! Entrando…</div>}
         {status === "erro" && (

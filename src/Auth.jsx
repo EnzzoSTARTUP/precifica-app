@@ -43,7 +43,7 @@ export default function Auth() {
       <style>{globalCss}</style>
 
       <div className="card" style={{ padding: 28, width: "100%", maxWidth: 360 }}>
-        <div className="serif" style={{ fontSize: 24, lineHeight: 1, marginBottom: 4 }}>Precifica</div>
+        <div className="serif" style={{ fontSize: 24, lineHeight: 1, marginBottom: 4 }}>Prezo</div>
         <div className="lbl" style={{ fontSize: 12.5, marginBottom: 22 }}>Custo · Markup · Preço</div>
 
         <div style={{ display: "flex", gap: 22, marginBottom: 18 }}>

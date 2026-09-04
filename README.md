@@ -1,4 +1,4 @@
-# Precifica
+# Prezo
 
 Calculadora de precificação — custo, markup e preço de venda por canal, com ponto de equilíbrio e ranking de margem por produto.
 
