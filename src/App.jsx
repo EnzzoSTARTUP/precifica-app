@@ -300,6 +300,7 @@ function Painel({ produtos, calc, cfg, onOpen }) {
     .sort((a, b) => b.r.prim.mcCanalPct - a.r.prim.mcCanalPct);
   const linhas = busca ? todasLinhas.filter((x) => x.p.nome.toLowerCase().includes(busca.toLowerCase())) : todasLinhas;
   const mcMedia = todasLinhas.length ? todasLinhas.reduce((s, x) => s + x.r.prim.mcCanalPct, 0) / todasLinhas.length : 0;
+  const cmvMedia = todasLinhas.length ? todasLinhas.reduce((s, x) => s + x.r.cmvPct, 0) / todasLinhas.length : 0;
   const pe = mcMedia > 0 ? fixas / (mcMedia / 100) : 0;
   const folga = cfg.faturamentoMedio > 0 && pe > 0 ? ((cfg.faturamentoMedio - pe) / cfg.faturamentoMedio) * 100 : 0;
   const usaFixas = cfg.modoFixas === "auto" && fixas > 0;
@@ -343,6 +344,13 @@ function Painel({ produtos, calc, cfg, onOpen }) {
         </div>
       )}
 
+      {todasLinhas.length > 0 && (
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 30 }}>
+          <span className="lbl">CMV teórico do restaurante</span>
+          <span className="mono tag" style={{ fontSize: 15, color: corCMV(cmvMedia), background: bgCMV(cmvMedia) }}>{pct(cmvMedia)}</span>
+        </div>
+      )}
+
       <Sec acao={
         todasLinhas.length > 0 && (
           <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="buscar"
@@ -360,8 +368,9 @@ function Painel({ produtos, calc, cfg, onOpen }) {
           <thead>
             <tr>
               <th className="lbl" style={{ textAlign: "left", padding: "8px 0", fontSize: 12 }}>Produto</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Custo do preço</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>Sobra</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>CMV</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Custo</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>Preço</th>
             </tr>
           </thead>
           <tbody>
@@ -369,12 +378,12 @@ function Painel({ produtos, calc, cfg, onOpen }) {
               <tr key={p.id} className="row tap" onClick={() => onOpen(p.id)}>
                 <td style={{ padding: "14px 0" }}>
                   <div style={{ fontSize: 15.5, fontWeight: 600 }}>{p.nome}</div>
-                  <div className="mono" style={{ fontSize: 13, color: C.ink45, marginTop: 3 }}>{brl(r.prim.definido)}</div>
                 </td>
-                <td className="mono" style={{ textAlign: "right", padding: "14px 10px", fontSize: 15, color: C.ink70 }}>{pct(r.cmvPct)}</td>
-                <td style={{ textAlign: "right", padding: "14px 0" }}>
-                  <span className="mono tag" style={{ fontSize: 14, color: corMC(r.prim.mcCanalPct), background: bgMC(r.prim.mcCanalPct) }}>{pct(r.prim.mcCanalPct)}</span>
+                <td style={{ textAlign: "right", padding: "14px 10px" }}>
+                  <span className="mono tag" style={{ fontSize: 13, color: corCMV(r.cmvPct), background: bgCMV(r.cmvPct) }}>{pct(r.cmvPct)}</span>
                 </td>
+                <td className="mono" style={{ textAlign: "right", padding: "14px 10px", fontSize: 15, color: C.ink70 }}>{brlSec(r.custoUnid)}</td>
+                <td className="mono" style={{ textAlign: "right", padding: "14px 0", fontSize: 15 }}>{brl(r.prim.definido)}</td>
               </tr>
             ))}
           </tbody>
