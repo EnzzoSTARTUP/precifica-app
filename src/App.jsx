@@ -969,14 +969,26 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
   const setCanal = (id, patch) => onSaveCanais(canais.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   const addCanal = () => onSaveCanais([...canais, { id: uid(), nome: "Novo canal", comissao: 0, embalagem: 0 }]);
   const setDesp = (id, patch) => set("despesas", (cfg.despesas || []).map((d) => (d.id === id ? { ...d, ...patch } : d)));
-  const addDesp = (categoria) => set("despesas", [...(cfg.despesas || []), { id: uid(), nome: "", valor: 0, categoria }]);
+  const addDesp = () => set("despesas", [...(cfg.despesas || []), { id: uid(), nome: "", valor: 0 }]);
   const rmDesp = (id) => set("despesas", (cfg.despesas || []).filter((d) => d.id !== id));
+  const CATEGORIAS_FIXAS = [
+    { id: "ocupacional", titulo: "Despesa ocupacional", hint: "aluguel, condomínio, luz…" },
+    { id: "equipe", titulo: "Despesa com equipe", hint: "salário, férias, extra, INSS e FGTS" },
+    { id: "administrativa", titulo: "Despesa administrativa", hint: "prestadores de serviço, sistemas (TOTVS etc)" },
+  ];
+  const setValorCategoria = (catId, valor) => {
+    const existente = (cfg.despesas || []).find((d) => d.categoria === catId);
+    if (existente) setDesp(existente.id, { valor });
+    else set("despesas", [...(cfg.despesas || []), { id: uid(), nome: catId, valor, categoria: catId }]);
+  };
+  const despesasExtras = (cfg.despesas || []).filter((d) => !CATEGORIAS_FIXAS.some((c) => c.id === d.categoria));
 
   const total = totalFixas(cfg);
   const fixasPct = calcFixasPct(cfg);
   const base = cfg.impostos + fixasPct + cfg.lucro;
   const somaMax = base + Math.max(0, ...canais.map((c) => c.comissao || 0));
   const alerta = somaMax >= 80 ? "erro" : somaMax >= 65 ? "aviso" : null;
+  const markup = base < 100 ? 1 / (1 - base / 100) : null;
   const usoCanal = (id) => produtos.filter((p) => p.precosCanal?.[id] > 0).length;
 
   const pctCalculado = cfg.faturamentoMedio > 0 ? (total / cfg.faturamentoMedio) * 100 : 0;
@@ -995,6 +1007,12 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         <div className="mono" style={{ fontSize: 12, color: C.ink45, marginTop: 8 }}>
           impostos {pct(cfg.impostos)} + fixas {pct(fixasPct)} + lucro {pct(cfg.lucro)}
         </div>
+        {markup && (
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.ruleSoft}` }}>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Markup sobre o custo</span>
+            <span className="serif" style={{ fontSize: 26, lineHeight: 1 }}>{markup.toFixed(2)}×</span>
+          </div>
+        )}
         {alerta && (
           <>
           <button className="btn" onClick={() => onSaveCfg({ ...DEFAULT_CFG })}
@@ -1047,46 +1065,31 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         </div>
       ) : (
         <div style={{ paddingTop: 14 }}>
-          {[
-            { id: "ocupacional", titulo: "Despesa ocupacional", hint: "aluguel, condomínio, luz…" },
-            { id: "equipe", titulo: "Despesa com equipe", hint: "salário, férias, extra, INSS e FGTS" },
-            { id: "administrativa", titulo: "Despesa administrativa", hint: "prestadores de serviço, sistemas (TOTVS etc)" },
-          ].map((grupo) => {
-            const itens = (cfg.despesas || []).filter((d) => (d.categoria || "ocupacional") === grupo.id);
+          {CATEGORIAS_FIXAS.map((c) => {
+            const item = (cfg.despesas || []).find((d) => d.categoria === c.id);
             return (
-              <div key={grupo.id} style={{ marginBottom: 26 }}>
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>{grupo.titulo}</div>
-                  <div style={{ fontSize: 12.5, color: C.ink45, marginTop: 2 }}>{grupo.hint}</div>
-                </div>
-                {itens.map((d) => (
-                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-                    <div className="fld" style={{ flex: 1 }}>
-                      <input value={d.nome} onChange={(e) => setDesp(d.id, { nome: e.target.value })} placeholder="Ex: Aluguel" className="inp" />
-                    </div>
-                    <div className="fld" style={{ width: 116 }}>
-                      <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-                      <input type="number" inputMode="decimal" value={d.valor || ""} placeholder="0" className="inp numi" onChange={(e) => setDesp(d.id, { valor: parseFloat(e.target.value) || 0 })} />
-                    </div>
-                    <button className="btn" onClick={() => rmDesp(d.id)} style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
-                  </div>
-                ))}
-                <button className="btn lbl" onClick={() => addDesp(grupo.id)} style={{ background: "none", border: "none", color: C.ink, borderBottom: `1px solid ${C.ink}`, paddingBottom: 1, marginTop: 4 }}>Adicionar despesa</button>
-              </div>
+              <LinhaCampo key={c.id} rot={c.titulo} hint={c.hint}>
+                <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+                <input type="number" inputMode="decimal" className="inp numi" value={item?.valor || ""} placeholder="0"
+                  onChange={(e) => setValorCategoria(c.id, parseFloat(e.target.value) || 0)} style={{ width: 92 }} />
+              </LinhaCampo>
             );
           })}
 
-          <div style={{ marginTop: 4, borderTop: `1px solid ${C.ink}`, paddingTop: 12 }}>
-            <Lin rot="Total de despesa fixa" v={brl(total)} />
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 }}>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>Representa do faturamento</span>
-              <span className="serif" style={{ fontSize: 30, lineHeight: 1 }}>{cfg.faturamentoMedio > 0 ? pct(fixasPct) : "—"}</span>
+          {despesasExtras.map((d) => (
+            <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 9, padding: "11px 0", borderBottom: `1px solid ${C.ruleSoft}` }}>
+              <div className="fld" style={{ flex: 1 }}>
+                <input value={d.nome} onChange={(e) => setDesp(d.id, { nome: e.target.value })} placeholder="Ex: Outra despesa" className="inp" />
+              </div>
+              <div className="fld" style={{ width: 116 }}>
+                <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+                <input type="number" inputMode="decimal" value={d.valor || ""} placeholder="0" className="inp numi" onChange={(e) => setDesp(d.id, { valor: parseFloat(e.target.value) || 0 })} />
+              </div>
+              <button className="btn" onClick={() => rmDesp(d.id)} style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
             </div>
-            {cfg.faturamentoMedio <= 0 && <Aviso forte>Informe o faturamento médio para calcular o percentual.</Aviso>}
-            {cfg.faturamentoMedio > 0 && fixasPct > 45 && (
-              <Aviso forte>Despesa fixa em {pct(fixasPct)} do faturamento é fora do normal. Confira se o faturamento médio ({brl(cfg.faturamentoMedio)}) está correto — é o valor que a empresa fatura por mês, não por dia.</Aviso>
-            )}
-          </div>
+          ))}
+
+          <button className="btn lbl" onClick={addDesp} style={{ background: "none", border: "none", color: C.ink, borderBottom: `1px solid ${C.ink}`, paddingBottom: 1, marginTop: 12 }}>Adicionar despesa</button>
         </div>
       )}
 
