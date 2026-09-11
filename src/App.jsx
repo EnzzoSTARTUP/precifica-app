@@ -982,7 +982,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         </div>
         {markup && (
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 14, paddingTop: 14, borderTop: `1px solid ${C.ruleSoft}` }}>
-            <span style={{ fontSize: 13, fontWeight: 600 }}>Markup sobre o custo</span>
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Markup</span>
             <span className="serif" style={{ fontSize: 26, lineHeight: 1 }}>{markup.toFixed(2)}×</span>
           </div>
         )}
