@@ -969,7 +969,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
   const setCanal = (id, patch) => onSaveCanais(canais.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   const addCanal = () => onSaveCanais([...canais, { id: uid(), nome: "Novo canal", comissao: 0, embalagem: 0 }]);
   const setDesp = (id, patch) => set("despesas", (cfg.despesas || []).map((d) => (d.id === id ? { ...d, ...patch } : d)));
-  const addDesp = () => set("despesas", [...(cfg.despesas || []), { id: uid(), nome: "", valor: 0 }]);
+  const addDesp = (categoria) => set("despesas", [...(cfg.despesas || []), { id: uid(), nome: "", valor: 0, categoria }]);
   const rmDesp = (id) => set("despesas", (cfg.despesas || []).filter((d) => d.id !== id));
 
   const total = totalFixas(cfg);
@@ -1011,6 +1011,12 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
       </div>
 
       <Sec>Contas fixas do mês</Sec>
+      <div style={{ paddingTop: 14 }}>
+        <LinhaCampo rot="Quanto a empresa fatura por mês" hint="valor do MÊS inteiro, não do dia">
+          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+          <input type="number" inputMode="decimal" className="inp numi" value={cfg.faturamentoMedio} onChange={(e) => set("faturamentoMedio", parseFloat(e.target.value) || 0)} style={{ width: 92 }} />
+        </LinhaCampo>
+      </div>
       <div style={{ display: "flex", gap: 22, padding: "14px 0 4px" }}>
         {[{ id: "auto", l: "Calcular pelo R$" }, { id: "manual", l: "Informar %" }].map((m) => (
           <button key={m.id} className="btn" onClick={() => trocarModo(m.id)}
@@ -1041,28 +1047,36 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         </div>
       ) : (
         <div style={{ paddingTop: 14 }}>
-          {(cfg.despesas || []).map((d) => (
-            <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
-              <div className="fld" style={{ flex: 1 }}>
-                <input value={d.nome} onChange={(e) => setDesp(d.id, { nome: e.target.value })} placeholder="Ex: Aluguel" className="inp" />
+          {[
+            { id: "ocupacional", titulo: "Despesa ocupacional", hint: "aluguel, condomínio, luz…" },
+            { id: "equipe", titulo: "Despesa com equipe", hint: "salário, férias, extra, INSS e FGTS" },
+            { id: "administrativa", titulo: "Despesa administrativa", hint: "prestadores de serviço, sistemas (TOTVS etc)" },
+          ].map((grupo) => {
+            const itens = (cfg.despesas || []).filter((d) => (d.categoria || "ocupacional") === grupo.id);
+            return (
+              <div key={grupo.id} style={{ marginBottom: 26 }}>
+                <div style={{ marginBottom: 10 }}>
+                  <div style={{ fontSize: 14, fontWeight: 600 }}>{grupo.titulo}</div>
+                  <div style={{ fontSize: 12.5, color: C.ink45, marginTop: 2 }}>{grupo.hint}</div>
+                </div>
+                {itens.map((d) => (
+                  <div key={d.id} style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 8 }}>
+                    <div className="fld" style={{ flex: 1 }}>
+                      <input value={d.nome} onChange={(e) => setDesp(d.id, { nome: e.target.value })} placeholder="Ex: Aluguel" className="inp" />
+                    </div>
+                    <div className="fld" style={{ width: 116 }}>
+                      <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+                      <input type="number" inputMode="decimal" value={d.valor || ""} placeholder="0" className="inp numi" onChange={(e) => setDesp(d.id, { valor: parseFloat(e.target.value) || 0 })} />
+                    </div>
+                    <button className="btn" onClick={() => rmDesp(d.id)} style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
+                  </div>
+                ))}
+                <button className="btn lbl" onClick={() => addDesp(grupo.id)} style={{ background: "none", border: "none", color: C.ink, borderBottom: `1px solid ${C.ink}`, paddingBottom: 1, marginTop: 4 }}>Adicionar despesa</button>
               </div>
-              <div className="fld" style={{ width: 116 }}>
-                <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-                <input type="number" inputMode="decimal" value={d.valor || ""} placeholder="0" className="inp numi" onChange={(e) => setDesp(d.id, { valor: parseFloat(e.target.value) || 0 })} />
-              </div>
-              <button className="btn" onClick={() => rmDesp(d.id)} style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
-            </div>
-          ))}
-          <button className="btn lbl" onClick={addDesp} style={{ background: "none", border: "none", color: C.ink, borderBottom: `1px solid ${C.ink}`, paddingBottom: 1, marginTop: 4 }}>Adicionar despesa</button>
+            );
+          })}
 
-          <div style={{ marginTop: 22, paddingTop: 14, borderTop: `1px solid ${C.ruleSoft}` }}>
-            <LinhaCampo rot="Quanto a empresa fatura por mês" hint="valor do MÊS inteiro, não do dia">
-              <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-              <input type="number" inputMode="decimal" className="inp numi" value={cfg.faturamentoMedio} onChange={(e) => set("faturamentoMedio", parseFloat(e.target.value) || 0)} style={{ width: 92 }} />
-            </LinhaCampo>
-          </div>
-
-          <div style={{ marginTop: 18, borderTop: `1px solid ${C.ink}`, paddingTop: 12 }}>
+          <div style={{ marginTop: 4, borderTop: `1px solid ${C.ink}`, paddingTop: 12 }}>
             <Lin rot="Total de despesa fixa" v={brl(total)} />
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 8 }}>
               <span style={{ fontSize: 13, fontWeight: 600 }}>Representa do faturamento</span>
