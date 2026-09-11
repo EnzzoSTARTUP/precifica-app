@@ -974,7 +974,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
   const CATEGORIAS_FIXAS = [
     { id: "ocupacional", titulo: "Despesa ocupacional", hint: "aluguel, condomínio, luz…" },
     { id: "equipe", titulo: "Despesa com equipe", hint: "salário, férias, extra, INSS e FGTS" },
-    { id: "administrativa", titulo: "Despesa administrativa", hint: "prestadores de serviço, sistemas (TOTVS etc)" },
+    { id: "administrativa", titulo: "Despesa administrativa", hint: "prestadores de serviço (ex: contabilidade, TOTVS), materiais de apoio (ex: louça, limpeza)" },
   ];
   const setValorCategoria = (catId, valor) => {
     const existente = (cfg.despesas || []).find((d) => d.categoria === catId);
@@ -1001,7 +1001,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
 
   return (
     <div>
-      <Sec>Resumo da sua configuração</Sec>
+      <Sec></Sec>
       <div className="card" style={{ padding: 20 }}>
         <div className="serif" style={{ fontSize: 38, lineHeight: 1.05, color: alerta ? C.red : C.ink }}>{pct(base)}</div>
         <div className="mono" style={{ fontSize: 12, color: C.ink45, marginTop: 8 }}>
@@ -1028,7 +1028,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         )}
       </div>
 
-      <Sec>Contas fixas do mês</Sec>
+      <Sec></Sec>
       <div style={{ paddingTop: 14 }}>
         <LinhaCampo rot="Quanto a empresa fatura por mês" hint="valor do MÊS inteiro, não do dia">
           <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
@@ -1099,7 +1099,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
           <input type="number" inputMode="decimal" className="inp numi" value={cfg.impostos} onChange={(e) => set("impostos", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
           <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
         </LinhaCampo>
-        <LinhaCampo rot="Lucro que você quer" hint="de cada R$ 100 vendidos, quanto quer que sobre">
+        <LinhaCampo rot="Lucro desejado" hint="de cada R$ 100 vendidos, quanto quer que sobre">
           <input type="number" inputMode="decimal" className="inp numi" value={cfg.lucro} onChange={(e) => set("lucro", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
           <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
         </LinhaCampo>
