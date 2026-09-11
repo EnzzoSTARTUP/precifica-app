@@ -119,8 +119,8 @@ export default function App() {
 
     const precos = canais.map((canal) => {
       const soma = base + canal.comissao;
-      const viavel = soma < 100;
-      const confiavel = soma < 80;          // acima disso o markup explode: não sugerimos preço
+      const viavel = soma < 100;             // acima disso a fórmula quebra (divisão por zero ou negativa)
+      const confiavel = viavel;
       const atencao = confiavel && soma >= 65;
       const markup = viavel ? 1 / (1 - soma / 100) : 0;
       const custoCanal = custoUnid + (canal.embalagem || 0);
@@ -176,32 +176,6 @@ export default function App() {
               Sair
             </button>
           </div>
-
-          {(() => {
-            const fx = calcFixasPct(cfg);
-            const b = cfg.impostos + fx + cfg.lucro;
-            const sMax = b + Math.max(0, ...canais.map((c) => c.comissao || 0));
-            if (sMax < 80) return null;
-            return (
-              <div style={{ background: C.redSoft, border: `1.5px solid ${C.red}`, borderRadius: 12, padding: "14px 16px", marginBottom: 20 }}>
-                <div style={{ fontSize: 14.5, fontWeight: 700, color: C.red, marginBottom: 5 }}>Os parâmetros não permitem calcular preço</div>
-                <div style={{ fontSize: 13.5, color: C.ink70, lineHeight: 1.5, fontWeight: 500 }}>
-                  Impostos, despesas fixas, lucro e a maior taxa de canal somam {pct(sMax)} do preço de venda.
-                  {fx > 45 && <> A despesa fixa está em <b>{pct(fx)}</b> do faturamento, o que quase sempre significa faturamento médio errado ou em branco.</>}
-                </div>
-                <div style={{ display: "flex", gap: 9, flexWrap: "wrap", marginTop: 12 }}>
-                  <button className="btn" onClick={() => { setAberto(null); setTab("ajustes"); }}
-                    style={{ background: C.red, color: "#fff", border: "none", borderRadius: 8, padding: "10px 15px", fontSize: 13.5, fontWeight: 700 }}>
-                    Revisar Ajustes
-                  </button>
-                  <button className="btn" onClick={() => saveCfg({ ...DEFAULT_CFG })}
-                    style={{ background: "#fff", color: C.ink, border: `1.5px solid ${C.rule}`, borderRadius: 8, padding: "10px 15px", fontSize: 13.5, fontWeight: 700 }}>
-                    Recomeçar com valores de exemplo
-                  </button>
-                </div>
-              </div>
-            );
-          })()}
 
           {produtoAberto ? (
             <Detalhe p={produtoAberto} insumos={insumos} cfg={cfg} calc={calc}
@@ -986,9 +960,8 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
   const total = totalFixas(cfg);
   const fixasPct = calcFixasPct(cfg);
   const base = cfg.impostos + fixasPct + cfg.lucro;
-  const somaMax = base + Math.max(0, ...canais.map((c) => c.comissao || 0));
-  const alerta = somaMax >= 80 ? "erro" : somaMax >= 65 ? "aviso" : null;
   const markup = base < 100 ? 1 / (1 - base / 100) : null;
+  const custoPct = 100 - base;
   const usoCanal = (id) => produtos.filter((p) => p.precosCanal?.[id] > 0).length;
 
   const pctCalculado = cfg.faturamentoMedio > 0 ? (total / cfg.faturamentoMedio) * 100 : 0;
@@ -1003,7 +976,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
     <div>
       <Sec></Sec>
       <div className="card" style={{ padding: 20 }}>
-        <div className="serif" style={{ fontSize: 38, lineHeight: 1.05, color: alerta ? C.red : C.ink }}>{pct(base)}</div>
+        <div className="serif" style={{ fontSize: 38, lineHeight: 1.05, color: C.ink }}>{pct(base)}</div>
         <div className="mono" style={{ fontSize: 12, color: C.ink45, marginTop: 8 }}>
           impostos {pct(cfg.impostos)} + fixas {pct(fixasPct)} + lucro {pct(cfg.lucro)}
         </div>
@@ -1013,19 +986,10 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
             <span className="serif" style={{ fontSize: 26, lineHeight: 1 }}>{markup.toFixed(2)}×</span>
           </div>
         )}
-        {alerta && (
-          <>
-          <button className="btn" onClick={() => onSaveCfg({ ...DEFAULT_CFG })}
-            style={{ marginTop: 14, background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "11px 16px", fontSize: 14, fontWeight: 700 }}>
-            Recomeçar com valores de exemplo
-          </button>
-          <Aviso forte>
-            {alerta === "erro"
-              ? `Com o canal de maior taxa a soma chega a ${pct(somaMax)} do preço de venda — não é possível sugerir preço. ${fixasPct > 45 ? `A despesa fixa está em ${pct(fixasPct)} do faturamento; confira o faturamento médio abaixo.` : "Reveja impostos, despesas fixas e lucro."}`
-              : `Com o canal de maior taxa a soma chega a ${pct(somaMax)}, o que deixa o preço sugerido alto. Vale conferir os percentuais.`}
-          </Aviso>
-          </>
-        )}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: 10 }}>
+          <span style={{ fontSize: 13, color: C.ink70 }}>Custo representa do preço de venda</span>
+          <span className="mono" style={{ fontSize: 14, fontWeight: 700, color: C.ink }}>{pct(custoPct)}</span>
+        </div>
       </div>
 
       <Sec></Sec>
@@ -1111,7 +1075,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
 
       {canais.map((c, idx) => {
         const soma = base + (c.comissao || 0);
-        const ok = soma < 80;
+        const ok = soma < 100;
         const usados = usoCanal(c.id);
         return (
           <div key={c.id} className="row" style={{ padding: "14px 0" }}>
