@@ -101,6 +101,13 @@ export default function App() {
 
   const usoDoInsumo = (insumoId) => produtos.filter((p) => p.itens.some((it) => it.insumoId === insumoId));
 
+  const resetarTudo = () => {
+    saveIns([]);
+    saveProd([]);
+    saveCanais([]);
+    saveCfg({ ...DEFAULT_CFG });
+  };
+
   const calc = (p) => {
     if (!p) return null;
     let orfaos = 0;
@@ -196,7 +203,7 @@ export default function App() {
                 <Insumos insumos={insumos} onSave={saveIns} custoInsumo={custoInsumo} usoDoInsumo={usoDoInsumo}
                   produtos={produtos} canais={canais} onSaveProdutos={saveProd} onSaveCanais={saveCanais} />
               )}
-              {tab === "ajustes" && <Ajustes cfg={cfg} onSaveCfg={saveCfg} canais={canais} onSaveCanais={saveCanais} onRemoverCanal={removerCanal} produtos={produtos} />}
+              {tab === "ajustes" && <Ajustes cfg={cfg} onSaveCfg={saveCfg} canais={canais} onSaveCanais={saveCanais} onRemoverCanal={removerCanal} produtos={produtos} onResetTudo={resetarTudo} />}
             </>
           )}
         </div>
@@ -938,7 +945,8 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo, produtos, canais, 
 
 // ————————————————————————— ajustes —————————————————————————
 
-function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produtos }) {
+function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produtos, onResetTudo }) {
+  const [resetStep, setResetStep] = useState(0);
   const set = (k, v) => onSaveCfg({ ...cfg, [k]: v });
   const setCanal = (id, patch) => onSaveCanais(canais.map((c) => (c.id === id ? { ...c, ...patch } : c)));
   const addCanal = () => onSaveCanais([...canais, { id: uid(), nome: "Novo canal", comissao: 0, embalagem: 0 }]);
@@ -1104,6 +1112,55 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
       <div style={{ fontSize: 12, color: C.ink45, marginTop: 12, lineHeight: 1.55 }}>
         O primeiro canal da lista é o principal — alimenta o CMV, o ranking e o ponto de equilíbrio.
       </div>
+
+      <Sec>Zona de risco</Sec>
+      <div style={{ paddingTop: 6, paddingBottom: 10 }}>
+        <button className="btn lbl" onClick={() => setResetStep(1)}
+          style={{ background: "none", border: "none", padding: 0, color: C.red, textDecoration: "underline", fontSize: 13.5, fontWeight: 600 }}>
+          Apagar todos os dados
+        </button>
+      </div>
+
+      {resetStep > 0 && (
+        <div onClick={() => setResetStep(0)} style={{ position: "fixed", inset: 0, background: "rgba(24,24,26,.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20, zIndex: 50 }}>
+          <div onClick={(e) => e.stopPropagation()} className="card" style={{ padding: 24, maxWidth: 360, width: "100%" }}>
+            {resetStep === 1 && (
+              <>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: C.red }}>Apagar todos os dados?</div>
+                <div style={{ fontSize: 13.5, color: C.red, lineHeight: 1.5, marginBottom: 20, fontWeight: 600 }}>
+                  Isso vai apagar PERMANENTEMENTE todos os insumos, produtos, canais e configurações desta conta. Essa ação não pode ser desfeita.
+                </div>
+              </>
+            )}
+            {resetStep === 2 && (
+              <>
+                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 10, color: C.red }}>Tem certeza mesmo?</div>
+                <div style={{ fontSize: 13.5, color: C.red, lineHeight: 1.5, marginBottom: 20, fontWeight: 600 }}>
+                  Todos os seus dados serão perdidos para sempre, sem nenhuma chance de recuperação. Confirme só se tiver certeza absoluta.
+                </div>
+              </>
+            )}
+            <div style={{ display: "flex", gap: 10 }}>
+              <button className="btn" onClick={() => setResetStep(0)}
+                style={{ flex: 1, background: "#fff", color: C.ink, border: `1.5px solid ${C.rule}`, borderRadius: 8, padding: "11px 0", fontSize: 13.5, fontWeight: 700 }}>
+                Cancelar
+              </button>
+              {resetStep === 1 && (
+                <button className="btn" onClick={() => setResetStep(2)}
+                  style={{ flex: 1, background: C.red, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontSize: 13.5, fontWeight: 700 }}>
+                  Continuar
+                </button>
+              )}
+              {resetStep === 2 && (
+                <button className="btn" onClick={() => { onResetTudo(); setResetStep(0); }}
+                  style={{ flex: 1, background: C.red, color: "#fff", border: "none", borderRadius: 8, padding: "11px 0", fontSize: 13.5, fontWeight: 700 }}>
+                  Apagar tudo agora
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
