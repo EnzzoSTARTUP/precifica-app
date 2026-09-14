@@ -884,12 +884,12 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo, produtos, canais, 
                       <div style={{ display: "flex", gap: 9, marginBottom: 14 }}>
                         <div className="fld" style={{ flex: 1 }}>
                           <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-                          <input type="number" inputMode="decimal" value={i.precoPacote} className="inp numi"
+                          <input type="number" inputMode="decimal" value={i.precoPacote || ""} placeholder="0" className="inp numi"
                             onChange={(e) => atualizar(i.id, { precoPacote: parseFloat(e.target.value) || 0 })}
                             onBlur={(e) => atualizar(i.id, { precoPacote: parseFloat(e.target.value) || 0 }, true)} />
                         </div>
                         <div className="fld" style={{ width: 72 }}>
-                          <input type="number" inputMode="decimal" value={i.qtdPacote} className="inp numi"
+                          <input type="number" inputMode="decimal" value={i.qtdPacote || ""} placeholder="0" className="inp numi"
                             onChange={(e) => atualizar(i.id, { qtdPacote: parseFloat(e.target.value) || 1 })} />
                         </div>
                         <select value={i.unidade} onChange={(e) => atualizar(i.id, { unidade: e.target.value })}
@@ -1004,7 +1004,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
       <div style={{ paddingTop: 14 }}>
         <LinhaCampo rot="Quanto a empresa fatura por mês" hint="valor do MÊS inteiro, não do dia">
           <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-          <input type="number" inputMode="decimal" className="inp numi" value={cfg.faturamentoMedio} onChange={(e) => set("faturamentoMedio", parseFloat(e.target.value) || 0)} style={{ width: 92 }} />
+          <input type="number" inputMode="decimal" className="inp numi" value={cfg.faturamentoMedio || ""} placeholder="0" onChange={(e) => set("faturamentoMedio", parseFloat(e.target.value) || 0)} style={{ width: 92 }} />
         </LinhaCampo>
       </div>
       <div style={{ display: "flex", gap: 22, padding: "14px 0 4px" }}>
@@ -1020,7 +1020,7 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
       {cfg.modoFixas === "manual" ? (
         <div style={{ paddingTop: 14 }}>
           <LinhaCampo rot="Despesas fixas" hint="percentual sobre o faturamento">
-            <input type="number" inputMode="decimal" className="inp numi" value={cfg.despesasFixasManual} onChange={(e) => set("despesasFixasManual", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
+            <input type="number" inputMode="decimal" className="inp numi" value={cfg.despesasFixasManual || ""} placeholder="0" onChange={(e) => set("despesasFixasManual", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
             <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
           </LinhaCampo>
           {pctCalculado > 0 && (
@@ -1068,11 +1068,11 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
       <Sec>Imposto e lucro</Sec>
       <div style={{ paddingTop: 6 }}>
         <LinhaCampo rot="Imposto sobre cada venda" hint="Simples Nacional costuma ficar em 6%">
-          <input type="number" inputMode="decimal" className="inp numi" value={cfg.impostos} onChange={(e) => set("impostos", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
+          <input type="number" inputMode="decimal" className="inp numi" value={cfg.impostos || ""} placeholder="0" onChange={(e) => set("impostos", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
           <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
         </LinhaCampo>
         <LinhaCampo rot="Lucro desejado" hint="de cada R$ 100 vendidos, quanto quer que sobre">
-          <input type="number" inputMode="decimal" className="inp numi" value={cfg.lucro} onChange={(e) => set("lucro", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
+          <input type="number" inputMode="decimal" className="inp numi" value={cfg.lucro || ""} placeholder="0" onChange={(e) => set("lucro", parseFloat(e.target.value) || 0)} style={{ width: 54 }} />
           <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
         </LinhaCampo>
       </div>
@@ -1097,12 +1097,12 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
             </div>
             <div style={{ display: "flex", gap: 14 }}>
               <Campo rot="Taxa do canal">
-                <input type="number" inputMode="decimal" className="inp numi" value={c.comissao} onChange={(e) => setCanal(c.id, { comissao: parseFloat(e.target.value) || 0 })} />
+                <input type="number" inputMode="decimal" className="inp numi" value={c.comissao || ""} placeholder="0" onChange={(e) => setCanal(c.id, { comissao: parseFloat(e.target.value) || 0 })} />
                 <span style={{ fontSize: 13, color: C.ink45 }}>%</span>
               </Campo>
               <Campo rot="Embalagem / frete">
                 <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-                <input type="number" inputMode="decimal" className="inp numi" value={c.embalagem} onChange={(e) => setCanal(c.id, { embalagem: parseFloat(e.target.value) || 0 })} />
+                <input type="number" inputMode="decimal" className="inp numi" value={c.embalagem || ""} placeholder="0" onChange={(e) => setCanal(c.id, { embalagem: parseFloat(e.target.value) || 0 })} />
               </Campo>
             </div>
           </div>
