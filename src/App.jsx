@@ -115,7 +115,8 @@ export default function App() {
       const ins = insumos.find((i) => i.id === it.insumoId);
       if (!ins) { orfaos++; return s; }
       const aprov = 1 - (it.perda || 0) / 100;
-      const bruto = aprov > 0 ? it.qtd / aprov : it.qtd;
+      const rendPreparo = ins.rendimentoPreparo || 1;
+      const bruto = (aprov > 0 ? it.qtd / aprov : it.qtd) / rendPreparo;
       return s + custoInsumo(ins) * bruto;
     }, 0);
     const rend = p.rendimento || 1;
@@ -687,7 +688,8 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
               );
             }
             const aprov = 1 - (it.perda || 0) / 100;
-            const bruto = aprov > 0 ? it.qtd / aprov : it.qtd;
+            const rendPreparo = ins.rendimentoPreparo || 1;
+            const bruto = (aprov > 0 ? it.qtd / aprov : it.qtd) / rendPreparo;
             const sug = perdaSugerida(ins.nome);
             return (
               <tr key={idx} className="row">
@@ -695,7 +697,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
                   <div style={{ fontSize: 13.5 }}>{ins.nome}</div>
                   <div className="mono" style={{ fontSize: 11, color: C.ink45, marginTop: 1 }}>
                     {brlSec(custoInsumo(ins) * bruto)}
-                    {it.perda > 0 && ` · compra ${num(bruto, 1)}${baseUnit(ins.unidade)}`}
+                    {(it.perda > 0 || rendPreparo !== 1) && ` · compra ${num(bruto, 1)}${baseUnit(ins.unidade)}`}
                   </div>
                 </td>
                 <td style={{ padding: "9px 6px" }}>
@@ -896,6 +898,18 @@ function Insumos({ insumos, onSave, custoInsumo, usoDoInsumo, produtos, canais, 
                           style={{ border: `1px solid ${C.rule}`, borderRadius: 2, background: "#FFFDF8", padding: "0 6px", fontSize: 13.5 }}>
                           {UNIDADES.map((u) => <option key={u}>{u}</option>)}
                         </select>
+                      </div>
+
+                      <div style={{ marginBottom: 14 }}>
+                        <div className="lbl" style={{ marginBottom: 3 }}>Rendimento no preparo</div>
+                        <div style={{ fontSize: 12, color: C.ink45, marginBottom: 8, lineHeight: 1.4 }}>
+                          Pra insumo que muda de peso ao cozinhar — ex: 1kg de arroz cru rende 3kg pronto, então é 3. Deixe 1 se não muda.
+                        </div>
+                        <div className="fld" style={{ width: 90 }}>
+                          <input type="number" inputMode="decimal" value={i.rendimentoPreparo || ""} placeholder="1" className="inp numi"
+                            onChange={(e) => atualizar(i.id, { rendimentoPreparo: parseFloat(e.target.value) || 1 })} />
+                          <span style={{ fontSize: 13, color: C.ink45 }}>×</span>
+                        </div>
                       </div>
 
                       {h.length > 1 && (
