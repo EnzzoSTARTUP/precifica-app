@@ -1,0 +1,7 @@
+# Configuração do Supabase CLI para o projeto Prezo.
+# project_id é preenchido por `supabase link --project-ref msackynicbhmehywvpzf`.
+project_id = "msackynicbhmehywvpzf"
+
+[functions.cadastro-extrair-prato]
+# rota pública do cadastro (usuário ainda não tem conta); a função faz o próprio rate limit
+verify_jwt = false

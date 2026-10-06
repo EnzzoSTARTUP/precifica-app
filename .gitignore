@@ -28,3 +28,7 @@ dist-ssr
 
 # Environment variables
 .env
+
+# Supabase CLI (estado local do link)
+supabase/.temp
+supabase/.branches
