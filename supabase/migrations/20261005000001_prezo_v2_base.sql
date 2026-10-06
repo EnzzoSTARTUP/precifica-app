@@ -63,7 +63,7 @@ create table if not exists public.admin_emails (
   email text primary key,
   criado_em timestamptz not null default now()
 );
-insert into public.admin_emails (email) values ('bennesbye@gmail.com'), ('enzzobennesby7@gmail.com')
+insert into public.admin_emails (email) values ('bennesbye@gmail.com')
   on conflict do nothing;
 
 -- ———————————————————————— is_admin() ————————————————————————
@@ -347,8 +347,8 @@ begin
           'historico', (select coalesce(jsonb_agg(z.h order by z.o), '[]'::jsonb) from (
               select h, o from jsonb_array_elements(coalesce(e->'historico', '[]'::jsonb) || jsonb_build_array(jsonb_build_object('d', to_char(now(), 'YYYY-MM-DD'), 'p', c.preco_medio))) with ordinality t(h, o)
               order by o desc limit 12) z) )
-        else e end order by ord), '[]'::jsonb)
-    from jsonb_array_elements(s.insumos) with ordinality t(e, ord))
+        else e end order by ord)
+    from jsonb_array_elements(s.insumos) with ordinality t(e, ord)), '[]'::jsonb)
   where s.insumos @> jsonb_build_array(jsonb_build_object('catalogoId', p_catalogo::text));
   get diagnostics v_linhas = row_count;
   return v_linhas;
