@@ -400,7 +400,7 @@ select public._policy('empresas_update', 'empresas',
       using ((select public.is_admin()) or id = (select empresa_id from public.perfis where user_id = auth.uid()))
       with check ((select public.is_admin()) or id = (select empresa_id from public.perfis where user_id = auth.uid())) $p$);
 revoke update on public.empresas from authenticated;
-grant update (nome_fantasia, logo_url, categorias, bairro, cidade, uf, endereco) on public.empresas to authenticated;
+grant update (nome_fantasia, logo_url, categorias, bairro, cidade, uf, endereco, ultimo_acesso) on public.empresas to authenticated;
 
 select public._policy('empresa_socios_admin', 'empresa_socios',
   $p$ create policy empresa_socios_admin on public.empresa_socios for all to authenticated

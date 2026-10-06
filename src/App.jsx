@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { loadState, saveState } from "./lib/storage";
+import React, { useState, useEffect, useRef } from "react";
+import { loadState, saveState, ConflitoVersao } from "./lib/storage";
 import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
 import { UNIDADES, hoje, uid } from "./lib/util";
@@ -19,7 +19,7 @@ const ABAS = [{ id: "painel", l: "Painel" }, { id: "produtos", l: "Produtos" }, 
 
 // ————————————————————————— app —————————————————————————
 
-export default function App() {
+export default function App({ perfil }) {
   const [tab, setTab] = useState("painel");
   const [insumos, setInsumos] = useState([]);
   const [produtos, setProdutos] = useState([]);
@@ -28,6 +28,9 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [aberto, setAberto] = useState(null);
   const [confirmarSair, setConfirmarSair] = useState(false);
+  const [avisoSync, setAvisoSync] = useState("");
+  const versaoRef = useRef(null);
+  const filaRef = useRef(Promise.resolve());
 
   useEffect(() => {
     (async () => {
@@ -37,11 +40,34 @@ export default function App() {
       setProdutos(data.produtos ?? []);
       setCanais(data.canais ?? []);
       if (data.cfg) setCfg((p) => ({ ...p, ...data.cfg }));
+      versaoRef.current = data.versao ?? null;
       setLoaded(true);
     })();
   }, []);
 
-  const save = (k, v, setter) => { setter(v); (async () => { try { await saveState({ [k]: v }); } catch (_) {} })(); };
+  const recarregar = async () => {
+    try {
+      const d = await loadState();
+      setInsumos(d.insumos ?? []); setProdutos(d.produtos ?? []); setCanais(d.canais ?? []);
+      setCfg({ ...DEFAULT_CFG, ...(d.cfg || {}) });
+      versaoRef.current = d.versao ?? null;
+    } catch (_) {}
+  };
+  // gravações em fila (uma por vez) com a versão que o servidor devolveu por último
+  const save = (k, v, setter) => {
+    setter(v);
+    filaRef.current = filaRef.current.then(async () => {
+      try {
+        const r = await saveState({ [k]: v }, versaoRef.current);
+        if (r && r.versao != null) versaoRef.current = r.versao;
+      } catch (e) {
+        if (e instanceof ConflitoVersao) {
+          setAvisoSync("Seus dados foram atualizados por fora (ex.: preço do catálogo). Recarregamos a tela — confira sua última alteração.");
+          await recarregar();
+        }
+      }
+    });
+  };
   const saveIns = (v) => save("insumos", v, setInsumos);
   const saveProd = (v) => save("produtos", v, setProdutos);
   const saveCanais = (v) => save("canais", v, setCanais);
@@ -86,6 +112,7 @@ export default function App() {
           <div className="lbl" style={{ lineHeight: 1.6, fontSize: 12 }}>
             Dados salvos<br />na sua conta
           </div>
+          {perfil?.admin && <a href="/admin" className="lbl" style={{ display: "block", marginTop: 10, color: C.ink, textDecoration: "underline" }}>Painel admin</a>}
           <button className="btn lbl" onClick={() => setConfirmarSair(true)}
             style={{ background: "none", border: "none", padding: 0, marginTop: 10, color: C.ink45, textDecoration: "underline" }}>
             Sair
@@ -97,11 +124,16 @@ export default function App() {
         <div className="shell">
           <div className="brand-mobile" style={{ marginBottom: 26, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <Marca />
+            {perfil?.admin && <a href="/admin" className="lbl" style={{ color: C.ink, textDecoration: "underline", marginLeft: "auto", marginRight: 14 }}>Admin</a>}
             <button className="btn lbl" onClick={() => setConfirmarSair(true)}
               style={{ background: "none", border: "none", padding: 0, color: C.ink45, textDecoration: "underline" }}>
               Sair
             </button>
           </div>
+
+          {avisoSync && (
+            <div onClick={() => setAvisoSync("")} className="tap" style={{ background: C.warnSoft, color: C.warn, borderRadius: 10, padding: "12px 14px", fontSize: 13.5, fontWeight: 600, lineHeight: 1.5, marginBottom: 18 }}>{avisoSync}</div>
+          )}
 
           {produtoAberto ? (
             <Detalhe p={produtoAberto} insumos={insumos} cfg={cfg} calc={calc}
