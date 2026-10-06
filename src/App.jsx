@@ -3,6 +3,8 @@ import { loadState, saveState } from "./lib/storage";
 import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
 import { UNIDADES, hoje, uid } from "./lib/util";
+import { DEFAULT_CFG, fator, baseUnit, perdaSugerida, totalFixas, calcFixasPct, custoInsumo, quantidadeBruta, calc as calcPuro } from "./lib/calc";
+import { brl, brlSec, pct, num, dataBR, corCMV, bgCMV, corMC, bgMC } from "./lib/formato";
 import ImportUnificado from "./ImportUnificado";
 
 // ————————————————————————————————————————————————
@@ -13,50 +15,7 @@ import ImportUnificado from "./ImportUnificado";
 //  A lógica de cálculo é idêntica à versão anterior.
 // ————————————————————————————————————————————————
 
-const brl = (n) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(isFinite(n) ? n : 0);
-const brlSec = (n) => new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(isFinite(n) ? n : 0);
-const pct = (n) => `${(isFinite(n) ? n : 0).toFixed(1)}%`;
-const num = (n, d = 0) => new Intl.NumberFormat("pt-BR", { maximumFractionDigits: d }).format(isFinite(n) ? n : 0);
-const fator = (u) => (u === "kg" || u === "L" ? 1000 : 1);
-const baseUnit = (u) => (u === "kg" || u === "g" ? "g" : u === "L" || u === "ml" ? "ml" : u === "m2" ? "m²" : "un");
-const dataBR = (iso) => (iso ? iso.split("-").reverse().slice(0, 2).join("/") : "");
-
 const ABAS = [{ id: "painel", l: "Painel" }, { id: "produtos", l: "Produtos" }, { id: "insumos", l: "Insumos" }, { id: "ajustes", l: "Ajustes" }];
-
-const DEFAULT_CFG = {
-  lucro: 15, impostos: 6, modoFixas: "auto", despesasFixasManual: 0, faturamentoMedio: 0,
-  despesas: [],
-};
-
-// perda típica no preparo — evita que o usuário tenha que adivinhar
-const PERDAS = [
-  { termos: ["carne", "blend", "contrafile", "contrafilé", "picanha", "alcatra", "patinho", "acém", "acem", "costela", "bovino"], perda: 20, nota: "aparo e cocção" },
-  { termos: ["frango", "peito", "coxa", "sobrecoxa"], perda: 18, nota: "aparo e cocção" },
-  { termos: ["bacon", "linguiça", "linguica", "calabresa"], perda: 25, nota: "encolhe muito" },
-  { termos: ["peixe", "salmão", "salmao", "tilápia", "tilapia", "camarão", "camarao"], perda: 30, nota: "limpeza" },
-  { termos: ["batata", "cenoura", "mandioca", "abóbora", "abobora", "beterraba"], perda: 22, nota: "casca" },
-  { termos: ["alface", "tomate", "cebola", "alho", "pimentão", "pimentao", "couve", "repolho"], perda: 15, nota: "limpeza" },
-  { termos: ["limão", "limao", "laranja", "abacaxi", "manga", "melancia"], perda: 40, nota: "casca e caroço" },
-  { termos: ["queijo", "mussarela", "cheddar", "requeijão", "requeijao"], perda: 0, nota: "" },
-  { termos: ["couro", "tecido", "malha", "lona"], perda: 12, nota: "sobra de corte" },
-];
-const perdaSugerida = (nome) => {
-  const n = (nome || "").toLowerCase();
-  const m = PERDAS.find((p) => p.termos.some((t) => n.includes(t)));
-  return m || null;
-};
-
-const corCMV = (v) => (v <= 0 ? C.ink45 : v <= 35 ? C.ok : v <= 45 ? C.warn : C.red);
-const bgCMV = (v) => (v <= 0 ? "transparent" : v <= 35 ? C.okSoft : v <= 45 ? C.warnSoft : C.redSoft);
-const corMC = (v) => (v <= 0 ? C.red : v >= 30 ? C.ok : C.warn);
-const bgMC = (v) => (v <= 0 ? C.redSoft : v >= 30 ? C.okSoft : C.warnSoft);
-
-const totalFixas = (cfg) => (cfg.despesas || []).reduce((s, d) => s + (d.valor || 0), 0);
-function calcFixasPct(cfg) {
-  if (cfg.modoFixas === "manual") return cfg.despesasFixasManual || 0;
-  const t = totalFixas(cfg);
-  return cfg.faturamentoMedio > 0 ? (t / cfg.faturamentoMedio) * 100 : 0;
-}
 
 // ————————————————————————— app —————————————————————————
 
@@ -88,8 +47,6 @@ export default function App() {
   const saveCanais = (v) => save("canais", v, setCanais);
   const saveCfg = (v) => save("cfg", v, setCfg);
 
-  const custoInsumo = (ins) => ins.precoPacote / (ins.qtdPacote * fator(ins.unidade));
-
   const removerCanal = (canalId) => {
     saveCanais(canais.filter((c) => c.id !== canalId));
     saveProd(produtos.map((p) => {
@@ -108,46 +65,7 @@ export default function App() {
     saveCfg({ ...DEFAULT_CFG });
   };
 
-  const calc = (p) => {
-    if (!p) return null;
-    let orfaos = 0;
-    const custoInsumos = p.itens.reduce((s, it) => {
-      const ins = insumos.find((i) => i.id === it.insumoId);
-      if (!ins) { orfaos++; return s; }
-      const aprov = 1 - (it.perda || 0) / 100;
-      const rendPreparo = ins.rendimentoPreparo || 1;
-      const bruto = (aprov > 0 ? it.qtd / aprov : it.qtd) / rendPreparo;
-      return s + custoInsumo(ins) * bruto;
-    }, 0);
-    const rend = p.rendimento || 1;
-    const custoUnid = custoInsumos / rend + (p.maoDeObra || 0) + (p.outrosCustos || 0);
-
-    const fixasPct = calcFixasPct(cfg);
-    const base = cfg.impostos + fixasPct + cfg.lucro;
-
-    const precos = canais.map((canal) => {
-      const soma = base + canal.comissao;
-      const viavel = soma < 100;             // acima disso a fórmula quebra (divisão por zero ou negativa)
-      const confiavel = viavel;
-      const atencao = confiavel && soma >= 65;
-      const markup = viavel ? 1 / (1 - soma / 100) : 0;
-      const custoCanal = custoUnid + (canal.embalagem || 0);
-      const preco = confiavel ? custoCanal * markup : 0;
-      const definido = p.precosCanal?.[canal.id] || 0;
-      const cmvCanal = definido > 0 ? (custoUnid / definido) * 100 : 0;
-      const varCanal = definido * (cfg.impostos + canal.comissao) / 100;
-      const mcCanal = definido > 0 ? definido - custoUnid - (canal.embalagem || 0) - varCanal : 0;
-      const mcCanalPct = definido > 0 ? (mcCanal / definido) * 100 : 0;
-      const temDesvio = definido > 0 && confiavel && preco > 0;
-      const desvio = temDesvio ? ((definido - preco) / preco) * 100 : 0;
-      return { ...canal, soma, markup, preco, custoCanal, definido, cmvCanal, mcCanal, mcCanalPct, desvio, temDesvio, viavel, confiavel, atencao };
-    });
-
-    const prim = precos[0];
-    const precoRef = prim?.definido || 0;
-    const cmvPct = precoRef > 0 ? (custoUnid / precoRef) * 100 : 0;
-    return { custoInsumos, custoUnid, base, fixasPct, precos, prim, cmvPct, precoRef, orfaos };
-  };
+  const calc = (p) => calcPuro(p, { insumos, canais, cfg });
 
   if (!loaded) return <div style={{ background: C.paper, minHeight: "100vh" }} />;
   const produtoAberto = produtos.find((x) => x.id === aberto);
@@ -484,7 +402,6 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
   };
   const setItem = (idx, patch) => set({ itens: local.itens.map((it, i) => (i === idx ? { ...it, ...patch } : it)) });
   const rmItem = (idx) => set({ itens: local.itens.filter((_, i) => i !== idx) });
-  const custoInsumo = (ins) => ins.precoPacote / (ins.qtdPacote * fator(ins.unidade));
   const disponiveis = insumos.filter((i) => !local.itens.some((it) => it.insumoId === i.id));
   const achados = buscaIns.trim()
     ? disponiveis.filter((i) => i.nome.toLowerCase().includes(buscaIns.trim().toLowerCase())).slice(0, 6)
@@ -687,9 +604,8 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
                 </tr>
               );
             }
-            const aprov = 1 - (it.perda || 0) / 100;
             const rendPreparo = ins.rendimentoPreparo || 1;
-            const bruto = (aprov > 0 ? it.qtd / aprov : it.qtd) / rendPreparo;
+            const bruto = quantidadeBruta(it, ins);
             const sug = perdaSugerida(ins.nome);
             return (
               <tr key={idx} className="row">
