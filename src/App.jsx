@@ -452,8 +452,12 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
     <div>
       <button onClick={onBack} className="btn lbl" style={{ background: "none", border: "none", padding: "0 0 20px", color: C.ink45 }}>← Produtos</button>
 
-      <input value={local.nome} onChange={(e) => set({ nome: e.target.value })} className="serif"
-        style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 34, lineHeight: 1.15, letterSpacing: "-0.01em", padding: 0, marginBottom: 6 }} />
+      <div className="lbl" style={{ marginBottom: 6 }}>Nome do produto</div>
+      <div className="fld" style={{ marginBottom: 14 }}>
+      <input value={local.nome === "Novo produto" ? "" : local.nome} placeholder="Nome do produto"
+        onChange={(e) => set({ nome: e.target.value })} onBlur={() => { if (!local.nome.trim()) set({ nome: "Novo produto" }); }} className="serif nome-prod"
+        style={{ width: "100%", border: "none", background: "transparent", outline: "none", fontSize: 26, lineHeight: 1.15, letterSpacing: "-0.01em", padding: "13px 3px", minWidth: 0 }} />
+      </div>
 
       <div className="card" style={{ padding: 18, display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
         <span className="lbl">Custa para produzir</span>
