@@ -378,7 +378,7 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
               <th className="lbl" style={{ textAlign: "left", padding: "8px 0", fontSize: 12 }}>Produto</th>
               <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Custo</th>
               <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Multiplicador</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>Custo do preço</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>CMV (custo da mercadoria vendida)</th>
             </tr>
           </thead>
           <tbody>
@@ -521,7 +521,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
             <div style={{ display: "flex", marginTop: 12, borderTop: `1px solid ${C.ruleSoft}`, paddingTop: 9 }}>
               <Dado rot="Sobra por venda" v={brl(canal.mcCanal)} cor={corMC(canal.mcCanalPct)} />
               <Dado rot="Isso é da venda" v={pct(canal.mcCanalPct)} cor={corMC(canal.mcCanalPct)} />
-              <Dado rot="Custo do preço" v={pct(canal.cmvCanal)} cor={corCMV(canal.cmvCanal)} ultimo />
+              <Dado rot="CMV (custo da mercadoria vendida)" v={pct(canal.cmvCanal)} cor={corCMV(canal.cmvCanal)} ultimo />
             </div>
           )}
 
@@ -688,7 +688,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
 
 function Dado({ rot, v, cor, alerta, ultimo }) {
   return (
-    <div style={{ flex: 1, borderRight: ultimo ? "none" : `1px solid ${C.ruleSoft}`, paddingRight: 10, marginRight: 10 }}>
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between", borderRight: ultimo ? "none" : `1px solid ${C.ruleSoft}`, paddingRight: 10, marginRight: 10 }}>
       <div className="lbl" style={{ fontSize: 12 }}>{rot}</div>
       <div className="mono" style={{ fontSize: 17, marginTop: 3, color: cor || (alerta ? C.red : C.ink) }}>{v}</div>
     </div>
