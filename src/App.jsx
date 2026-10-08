@@ -3,7 +3,7 @@ import { loadState, saveState, ConflitoVersao } from "./lib/storage";
 import { supabase } from "./lib/supabaseClient";
 import { C, globalCss } from "./theme";
 import { UNIDADES, hoje, uid } from "./lib/util";
-import { DEFAULT_CFG, fator, baseUnit, perdaSugerida, totalFixas, calcFixasPct, custoInsumo, quantidadeBruta, calc as calcPuro } from "./lib/calc";
+import { DEFAULT_CFG, fator, baseUnit, totalFixas, calcFixasPct, custoInsumo, quantidadeBruta, calc as calcPuro } from "./lib/calc";
 import { brl, brlSec, pct, num, dataBR, corCMV, bgCMV, corMC, bgMC } from "./lib/formato";
 import ImportUnificado from "./ImportUnificado";
 
@@ -427,9 +427,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
   const set = (patch) => { const np = { ...local, ...patch }; setLocal(np); onSave(np); };
   const setPrecoCanal = (canalId, valor) => set({ precosCanal: { ...(local.precosCanal || {}), [canalId]: valor } });
   const addItem = (insumoId) => {
-    const ins = insumos.find((i) => i.id === insumoId);
-    const sug = perdaSugerida(ins?.nome);
-    set({ itens: [...local.itens, { insumoId, qtd: 0, perda: sug ? sug.perda : 0 }] });
+    set({ itens: [...local.itens, { insumoId, qtd: 0, perda: 0 }] });
     setAddOpen(false);
   };
   const setItem = (idx, patch) => set({ itens: local.itens.map((it, i) => (i === idx ? { ...it, ...patch } : it)) });
@@ -443,8 +441,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
     if (!preco || !qtd) return;
     const novo = { id: uid(), nome: buscaIns.trim(), unidade: rapido.un, precoPacote: preco, qtdPacote: qtd, historico: [{ d: hoje(), p: preco }] };
     onNovoInsumo(novo);
-    const sug = perdaSugerida(novo.nome);
-    set({ itens: [...local.itens, { insumoId: novo.id, qtd: 0, perda: sug ? sug.perda : 0 }] });
+    set({ itens: [...local.itens, { insumoId: novo.id, qtd: 0, perda: 0 }] });
     setRapido({ preco: "", qtd: "", un: "kg" }); setBuscaIns(""); setAddOpen(false);
   };
 
@@ -642,7 +639,6 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
             }
             const rendPreparo = ins.rendimentoPreparo || 1;
             const bruto = quantidadeBruta(it, ins);
-            const sug = perdaSugerida(ins.nome);
             return (
               <tr key={idx} className="row">
                 <td style={{ padding: "9px 0" }}>
