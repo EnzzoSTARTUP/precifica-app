@@ -1053,13 +1053,18 @@ function Ajustes({ cfg, onSaveCfg, canais, onSaveCanais, onRemoverCanal, produto
         const usados = usoCanal(c.id);
         return (
           <div key={c.id} className="row" style={{ padding: "14px 0" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10 }}>
-              <input value={c.nome} onChange={(e) => setCanal(c.id, { nome: e.target.value })}
-                style={{ flex: 1, minWidth: 0, border: "none", background: "transparent", outline: "none", fontSize: 15, fontWeight: 500, padding: 0 }} />
-              {idx === 0 && <span className="lbl" style={{ fontSize: 11.5 }}>Principal</span>}
-              <span className="mono" style={{ fontSize: 12, color: ok ? C.ink45 : C.red }}>{ok ? `${(1 / (1 - soma / 100)).toFixed(2)}×` : "sem preço"}</span>
-              <button className="btn" onClick={() => { if (usados === 0 || window.confirm(`${usados} produto(s) têm preço definido neste canal. Excluir apaga esses preços. Continuar?`)) onRemoverCanal(c.id); }}
-                style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 9, marginBottom: 12 }}>
+              <Campo rot="Canal de venda">
+                <input value={c.nome === "Novo canal" ? "" : c.nome} placeholder="Ex: Maquininha Salão, iFood, WhatsApp" className="inp"
+                  onChange={(e) => setCanal(c.id, { nome: e.target.value })}
+                  onBlur={() => { if (!c.nome.trim()) setCanal(c.id, { nome: "Novo canal" }); }} />
+              </Campo>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, paddingBottom: 13 }}>
+                {idx === 0 && <span className="lbl" style={{ fontSize: 11.5 }}>Principal</span>}
+                <span className="mono" style={{ fontSize: 12, color: ok ? C.ink45 : C.red }}>{ok ? `${(1 / (1 - soma / 100)).toFixed(2)}×` : "sem preço"}</span>
+                <button className="btn" onClick={() => { if (usados === 0 || window.confirm(`${usados} produto(s) têm preço definido neste canal. Excluir apaga esses preços. Continuar?`)) onRemoverCanal(c.id); }}
+                  style={{ background: "none", border: "none", color: C.ink45, fontSize: 15 }}>×</button>
+              </div>
             </div>
             <div style={{ display: "flex", gap: 14 }}>
               <Campo rot="Taxa do canal">
