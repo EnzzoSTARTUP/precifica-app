@@ -300,9 +300,10 @@ function Painel({ produtos, calc, cfg, onOpen }) {
           <thead>
             <tr>
               <th className="lbl" style={{ textAlign: "left", padding: "8px 0", fontSize: 12 }}>Produto</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>CMV</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Custo</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>Preço</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>Margem de contribuição</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>CMV</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>Custo</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 0 8px 4px", fontSize: 11.5 }}>Preço</th>
             </tr>
           </thead>
           <tbody>
@@ -311,11 +312,14 @@ function Painel({ produtos, calc, cfg, onOpen }) {
                 <td style={{ padding: "14px 0" }}>
                   <div style={{ fontSize: 15.5, fontWeight: 600 }}>{p.nome}</div>
                 </td>
-                <td style={{ textAlign: "right", padding: "14px 10px" }}>
-                  <span className="mono tag" style={{ fontSize: 13, color: corCMV(r.cmvPct), background: bgCMV(r.cmvPct) }}>{pct(r.cmvPct)}</span>
+                <td style={{ textAlign: "right", padding: "14px 4px" }}>
+                  <span className="mono tag" style={{ fontSize: 12.5, color: corMC(r.prim.mcCanalPct), background: bgMC(r.prim.mcCanalPct) }}>{pct(r.prim.mcCanalPct)}</span>
                 </td>
-                <td className="mono" style={{ textAlign: "right", padding: "14px 10px", fontSize: 15, color: C.ink70 }}>{brlSec(r.custoUnid)}</td>
-                <td className="mono" style={{ textAlign: "right", padding: "14px 0", fontSize: 15 }}>{brl(r.prim.definido)}</td>
+                <td style={{ textAlign: "right", padding: "14px 4px" }}>
+                  <span className="mono tag" style={{ fontSize: 12.5, color: corCMV(r.cmvPct), background: bgCMV(r.cmvPct) }}>{pct(r.cmvPct)}</span>
+                </td>
+                <td className="mono" style={{ textAlign: "right", padding: "14px 4px", fontSize: 14, color: C.ink70 }}>{brlSec(r.custoUnid)}</td>
+                <td className="mono" style={{ textAlign: "right", padding: "14px 0 14px 4px", fontSize: 14 }}>{brl(r.prim.definido)}</td>
               </tr>
             ))}
           </tbody>
@@ -376,9 +380,10 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
           <thead>
             <tr>
               <th className="lbl" style={{ textAlign: "left", padding: "8px 0", fontSize: 12 }}>Produto</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Custo</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 10px", fontSize: 12 }}>Multiplicador</th>
-              <th className="lbl" style={{ textAlign: "right", padding: "8px 0", fontSize: 12 }}>CMV (custo da mercadoria vendida)</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>Custo</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>Markup</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 4px", fontSize: 11.5 }}>CMV</th>
+              <th className="lbl" style={{ textAlign: "right", padding: "8px 0 8px 4px", fontSize: 11.5 }}>Margem de contribuição</th>
             </tr>
           </thead>
           <tbody>
@@ -395,13 +400,18 @@ function Produtos({ produtos, insumos, canais, calc, onOpen, onNew, onSaveInsumo
                         : prim ? (prim.confiavel ? `sugerido ${brl(prim.preco)} · ${prim.nome}` : "parâmetros impedem sugerir preço") : "sem canal"}
                     </div>
                   </td>
-                  <td className="mono" style={{ textAlign: "right", padding: "14px 10px", fontSize: 15 }}>{brlSec(r.custoUnid)}</td>
-                  <td className="mono" style={{ textAlign: "right", padding: "14px 10px", fontSize: 15, color: prim?.confiavel ? C.ink70 : C.red }}>
+                  <td className="mono" style={{ textAlign: "right", padding: "14px 4px", fontSize: 14 }}>{brlSec(r.custoUnid)}</td>
+                  <td className="mono" style={{ textAlign: "right", padding: "14px 4px", fontSize: 14, color: prim?.confiavel ? C.ink70 : C.red }}>
                     {prim ? (prim.confiavel ? `${prim.markup.toFixed(2)}×` : "—") : "—"}
                   </td>
-                  <td style={{ textAlign: "right", padding: "14px 0" }}>
+                  <td style={{ textAlign: "right", padding: "14px 4px" }}>
                     {r.cmvPct > 0
-                      ? <span className="mono tag" style={{ fontSize: 14, color: corCMV(r.cmvPct), background: bgCMV(r.cmvPct) }}>{pct(r.cmvPct)}</span>
+                      ? <span className="mono tag" style={{ fontSize: 13, color: corCMV(r.cmvPct), background: bgCMV(r.cmvPct) }}>{pct(r.cmvPct)}</span>
+                      : <span className="mono" style={{ fontSize: 15, color: C.ink45 }}>—</span>}
+                  </td>
+                  <td style={{ textAlign: "right", padding: "14px 0 14px 4px" }}>
+                    {prim?.definido > 0
+                      ? <span className="mono tag" style={{ fontSize: 13, color: corMC(prim.mcCanalPct), background: bgMC(prim.mcCanalPct) }}>{pct(prim.mcCanalPct)}</span>
                       : <span className="mono" style={{ fontSize: 15, color: C.ink45 }}>—</span>}
                   </td>
                 </tr>
@@ -469,96 +479,6 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
         insumos {brlSec(r.custoInsumos / (local.rendimento || 1))}
         {local.maoDeObra > 0 && ` + mão de obra ${brlSec(local.maoDeObra)}`}
         {local.outrosCustos > 0 && ` + outros custos ${brlSec(local.outrosCustos)}`}
-      </div>
-
-      <Sec>Detalhes (opcional)</Sec>
-      <div style={{ display: "flex", gap: 14, paddingTop: 14 }}>
-        <Campo rot="Rende quantas unidades">
-          <input type="number" inputMode="decimal" className="inp numi" value={local.rendimento}
-            onChange={(e) => set({ rendimento: parseFloat(e.target.value) || 1 })} />
-        </Campo>
-        <Campo rot="Mão de obra por unidade">
-          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-          <input type="number" inputMode="decimal" className="inp numi" value={local.maoDeObra || ""} placeholder="0"
-            onChange={(e) => set({ maoDeObra: parseFloat(e.target.value) || 0 })} />
-        </Campo>
-        <Campo rot="Outros custos por unidade">
-          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-          <input type="number" inputMode="decimal" className="inp numi" value={local.outrosCustos || ""} placeholder="0"
-            onChange={(e) => set({ outrosCustos: parseFloat(e.target.value) || 0 })} />
-        </Campo>
-      </div>
-
-      <Sec>Preço por canal</Sec>
-      {r.precos.length === 0 && <div style={{ fontSize: 13.5, color: C.ink70, paddingTop: 14 }}>Cadastre canais na aba Ajustes.</div>}
-      {r.precos.map((canal) => (
-        <div key={canal.id} className="row" style={{ padding: "15px 0" }}>
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <div style={{ fontSize: 14.5, fontWeight: 500 }}>{canal.nome}</div>
-              <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
-                <span className="mono tag" style={{ fontSize: 13, background: canal.confiavel ? "#EFEFEC" : C.redSoft, color: canal.confiavel ? C.ink : C.red }}>
-                  {canal.confiavel ? `markup ${canal.markup.toFixed(2)}×` : "sem preço possível"}
-                </span>
-                <span className="mono" style={{ fontSize: 13, color: C.ink70 }}>
-                  {canal.confiavel ? `sugerido ${brl(canal.preco)}` : ""}
-                </span>
-              </div>
-              <div className="mono" style={{ fontSize: 12, color: C.ink45, marginTop: 4 }}>taxa {pct(canal.comissao)} · soma {pct(canal.soma)}</div>
-            </div>
-            <div style={{ textAlign: "right", flexShrink: 0 }}>
-              <div className="lbl" style={{ marginBottom: 4 }}>Você cobra</div>
-              <div className="fld" style={{ borderColor: canal.definido > 0 ? C.ink : C.rule, display: "inline-flex" }}>
-                <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
-                <input type="number" inputMode="decimal" className="inp numi" value={canal.definido || ""}
-                  placeholder={canal.confiavel ? canal.preco.toFixed(2) : "0"}
-                  onChange={(e) => setPrecoCanal(canal.id, parseFloat(e.target.value) || 0)}
-                  style={{ width: 74, fontSize: 16, fontWeight: 600 }} />
-              </div>
-            </div>
-          </div>
-
-          {canal.definido > 0 && (
-            <div style={{ display: "flex", marginTop: 12, borderTop: `1px solid ${C.ruleSoft}`, paddingTop: 9 }}>
-              <Dado rot="Sobra por venda" v={brl(canal.mcCanal)} cor={corMC(canal.mcCanalPct)} />
-              <Dado rot="Isso é da venda" v={pct(canal.mcCanalPct)} cor={corMC(canal.mcCanalPct)} />
-              <Dado rot="CMV (custo da mercadoria vendida)" v={pct(canal.cmvCanal)} cor={corCMV(canal.cmvCanal)} ultimo />
-            </div>
-          )}
-
-          {canal.definido > 0 && canal.mcCanal > 0 && (
-            <div style={{ fontSize: 13.5, color: C.ink70, marginTop: 9, lineHeight: 1.5, fontWeight: 500 }}>
-              Vendendo a {brl(canal.definido)} neste canal, sobram <b style={{ color: C.ink }}>{brl(canal.mcCanal)}</b> por unidade para pagar as contas fixas e virar lucro.
-            </div>
-          )}
-          {canal.definido > 0 && canal.mcCanal <= 0 && (
-            <div style={{ fontSize: 13.5, color: C.red, marginTop: 9, lineHeight: 1.5, fontWeight: 600 }}>
-              A {brl(canal.definido)} este canal dá prejuízo de {brl(Math.abs(canal.mcCanal))} por unidade vendida.
-            </div>
-          )}
-          {!canal.confiavel && (
-            <Aviso forte>
-              Impostos, despesas fixas, lucro e taxa somam {pct(canal.soma)} do preço de venda. Não é possível sugerir um preço confiável.
-              {r.fixasPct > 45 && <> A causa provável é a despesa fixa em {pct(r.fixasPct)} do faturamento — confira o faturamento médio em Ajustes.</>}
-            </Aviso>
-          )}
-          {canal.confiavel && canal.atencao && <Aviso>Soma de {pct(canal.soma)} — o preço sugerido fica alto. Vale conferir os percentuais em Ajustes.</Aviso>}
-          {canal.confiavel && canal.temDesvio && canal.desvio < -2 && (
-            <Aviso forte>Abaixo do sugerido. Neste canal você não cobre os {pct(canal.soma)} de impostos, fixas, lucro e taxa.</Aviso>
-          )}
-        </div>
-      ))}
-
-      <Sec>De onde vem o preço</Sec>
-      <div style={{ paddingTop: 10 }}>
-        <Lin rot="Impostos" v={pct(cfg.impostos)} />
-        <Lin rot={cfg.modoFixas === "auto" ? `Despesas fixas · ${brl(totalFixas(cfg))} ÷ ${brl(cfg.faturamentoMedio)}` : "Despesas fixas · % informado"} v={pct(r.fixasPct)} />
-        <Lin rot="Lucro desejado" v={pct(cfg.lucro)} />
-        <Lin rot="Base, sem canal" v={pct(r.base)} forte />
-        <div style={{ height: 14 }} />
-        {r.precos.map((c) => (
-          <Lin key={c.id} rot={`${c.nome} — ${c.confiavel ? `${c.markup.toFixed(2)}×` : "sem preço"}`} v={c.confiavel ? brl(c.preco) : "—"} alerta={!c.confiavel} />
-        ))}
       </div>
 
       <Sec acao={<button className="btn lbl" onClick={() => setAddOpen(!addOpen)} style={{ background: C.ink, color: "#fff", border: "none", borderRadius: 8, padding: "10px 16px", fontSize: 13.5, fontWeight: 700 }}>{addOpen ? "Fechar" : "+ Ingrediente"}</button>}>
@@ -672,6 +592,101 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
 
       <div style={{ fontSize: 12, color: C.ink45, marginTop: 12, lineHeight: 1.55 }}>
         <b>Usa</b> é a quantidade que vai no produto pronto. <b>Perde</b> é o que se joga fora no preparo — aparo, osso, casca, encolhimento. Se não tiver perda, deixe em branco.
+      </div>
+
+      <Sec>Detalhes (opcional)</Sec>
+      <div style={{ display: "flex", gap: 14, paddingTop: 14 }}>
+        <Campo rot="Rende quantas unidades">
+          <input type="number" inputMode="decimal" className="inp numi" value={local.rendimento}
+            onChange={(e) => set({ rendimento: parseFloat(e.target.value) || 1 })} />
+        </Campo>
+        <Campo rot="Mão de obra por unidade">
+          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+          <input type="number" inputMode="decimal" className="inp numi" value={local.maoDeObra || ""} placeholder="0"
+            onChange={(e) => set({ maoDeObra: parseFloat(e.target.value) || 0 })} />
+        </Campo>
+        <Campo rot="Outros custos por unidade">
+          <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+          <input type="number" inputMode="decimal" className="inp numi" value={local.outrosCustos || ""} placeholder="0"
+            onChange={(e) => set({ outrosCustos: parseFloat(e.target.value) || 0 })} />
+        </Campo>
+      </div>
+
+      <Sec>Preço por canal</Sec>
+      {r.precos.length === 0 && <div style={{ fontSize: 13.5, color: C.ink70, paddingTop: 14 }}>Cadastre canais na aba Ajustes.</div>}
+      {r.precos.map((canal) => (
+        <div key={canal.id} className="row" style={{ padding: "15px 0" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 14 }}>
+            <div style={{ minWidth: 0, flex: 1 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 500 }}>{canal.nome}</div>
+              <div style={{ marginTop: 6, display: "flex", alignItems: "center", gap: 7, flexWrap: "wrap" }}>
+                <span className="mono tag" style={{ fontSize: 13, background: canal.confiavel ? "#EFEFEC" : C.redSoft, color: canal.confiavel ? C.ink : C.red }}>
+                  {canal.confiavel ? `markup ${canal.markup.toFixed(2)}×` : "sem preço possível"}
+                </span>
+                <span className="mono" style={{ fontSize: 13, color: C.ink70 }}>
+                  {canal.confiavel ? `sugerido ${brl(canal.preco)}` : ""}
+                </span>
+              </div>
+              <div className="mono" style={{ fontSize: 12, color: C.ink45, marginTop: 4 }}>taxa {pct(canal.comissao)} · soma {pct(canal.soma)}</div>
+            </div>
+            <div style={{ textAlign: "right", flexShrink: 0 }}>
+              <div className="lbl" style={{ marginBottom: 4 }}>Você cobra</div>
+              <div className="fld" style={{ borderColor: canal.definido > 0 ? C.ink : C.rule, display: "inline-flex" }}>
+                <span style={{ fontSize: 13, color: C.ink45 }}>R$</span>
+                <input type="number" inputMode="decimal" className="inp numi" value={canal.definido || ""}
+                  placeholder={canal.confiavel ? canal.preco.toFixed(2) : "0"}
+                  onChange={(e) => setPrecoCanal(canal.id, parseFloat(e.target.value) || 0)}
+                  style={{ width: 74, fontSize: 16, fontWeight: 600 }} />
+              </div>
+            </div>
+          </div>
+
+          {canal.definido > 0 && (
+            <div style={{ display: "flex", marginTop: 12, borderTop: `1px solid ${C.ruleSoft}`, paddingTop: 9 }}>
+              <Dado rot="Sobra por venda" v={brl(canal.mcCanal)} cor={corMC(canal.mcCanalPct)} />
+              <Dado rot="Margem de contribuição" v={pct(canal.mcCanalPct)} cor={corMC(canal.mcCanalPct)} />
+              <Dado rot="CMV (custo da mercadoria vendida)" v={pct(canal.cmvCanal)} cor={corCMV(canal.cmvCanal)} ultimo />
+            </div>
+          )}
+          {canal.definido > 0 && (
+            <div style={{ fontSize: 12, color: C.ink45, marginTop: 8, lineHeight: 1.5 }}>
+              Margem de contribuição: o que sobra de cada venda depois da mercadoria, impostos e taxas, para pagar as despesas fixas e virar lucro.
+            </div>
+          )}
+
+          {canal.definido > 0 && canal.mcCanal > 0 && (
+            <div style={{ fontSize: 13.5, color: C.ink70, marginTop: 9, lineHeight: 1.5, fontWeight: 500 }}>
+              Vendendo a {brl(canal.definido)} neste canal, sobram <b style={{ color: C.ink }}>{brl(canal.mcCanal)}</b> por unidade para pagar as contas fixas e virar lucro.
+            </div>
+          )}
+          {canal.definido > 0 && canal.mcCanal <= 0 && (
+            <div style={{ fontSize: 13.5, color: C.red, marginTop: 9, lineHeight: 1.5, fontWeight: 600 }}>
+              A {brl(canal.definido)} este canal dá prejuízo de {brl(Math.abs(canal.mcCanal))} por unidade vendida.
+            </div>
+          )}
+          {!canal.confiavel && (
+            <Aviso forte>
+              Impostos, despesas fixas, lucro e taxa somam {pct(canal.soma)} do preço de venda. Não é possível sugerir um preço confiável.
+              {r.fixasPct > 45 && <> A causa provável é a despesa fixa em {pct(r.fixasPct)} do faturamento — confira o faturamento médio em Ajustes.</>}
+            </Aviso>
+          )}
+          {canal.confiavel && canal.atencao && <Aviso>Soma de {pct(canal.soma)} — o preço sugerido fica alto. Vale conferir os percentuais em Ajustes.</Aviso>}
+          {canal.confiavel && canal.temDesvio && canal.desvio < -2 && (
+            <Aviso forte>Abaixo do sugerido. Neste canal você não cobre os {pct(canal.soma)} de impostos, fixas, lucro e taxa.</Aviso>
+          )}
+        </div>
+      ))}
+
+      <Sec>De onde vem o preço</Sec>
+      <div style={{ paddingTop: 10 }}>
+        <Lin rot="Impostos" v={pct(cfg.impostos)} />
+        <Lin rot={cfg.modoFixas === "auto" ? `Despesas fixas · ${brl(totalFixas(cfg))} ÷ ${brl(cfg.faturamentoMedio)}` : "Despesas fixas · % informado"} v={pct(r.fixasPct)} />
+        <Lin rot="Lucro desejado" v={pct(cfg.lucro)} />
+        <Lin rot="Base, sem canal" v={pct(r.base)} forte />
+        <div style={{ height: 14 }} />
+        {r.precos.map((c) => (
+          <Lin key={c.id} rot={`${c.nome} — ${c.confiavel ? `${c.markup.toFixed(2)}×` : "sem preço"}`} v={c.confiavel ? brl(c.preco) : "—"} alerta={!c.confiavel} />
+        ))}
       </div>
 
       <button onClick={() => onDuplicar(local)} className="btn"
