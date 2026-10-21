@@ -671,7 +671,7 @@ function Detalhe({ p, insumos, cfg, calc, onBack, onSave, onDelete, onNovoInsumo
       </table></div>
 
       <div style={{ fontSize: 12, color: C.ink45, marginTop: 12, lineHeight: 1.55 }}>
-        <b>Usa</b> é a quantidade que vai no produto pronto. <b>Perde</b> é o que se joga fora no preparo — aparo, osso, casca, encolhimento. Já preenchemos com valores típicos; ajuste se o seu for diferente.
+        <b>Usa</b> é a quantidade que vai no produto pronto. <b>Perde</b> é o que se joga fora no preparo — aparo, osso, casca, encolhimento. Se não tiver perda, deixe em branco.
       </div>
 
       <button onClick={() => onDuplicar(local)} className="btn"
