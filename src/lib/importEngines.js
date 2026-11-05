@@ -17,6 +17,7 @@ export function normalizarUnidade(v) {
   if (/^l(itro)?s?$/.test(s)) return "L";
   if (/^ml/.test(s)) return "ml";
   if (/^m2|m²/.test(s)) return "m2";
+  if (/^m(ts?|etros?)?$/.test(s)) return "m";
   if (/^un/.test(s)) return "un";
   return null;
 }

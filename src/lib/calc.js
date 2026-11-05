@@ -7,7 +7,7 @@ export const DEFAULT_CFG = {
 };
 
 export const fator = (u) => (u === "kg" || u === "L" ? 1000 : 1);
-export const baseUnit = (u) => (u === "kg" || u === "g" ? "g" : u === "L" || u === "ml" ? "ml" : u === "m2" ? "m²" : "un");
+export const baseUnit = (u) => (u === "kg" || u === "g" ? "g" : u === "L" || u === "ml" ? "ml" : u === "m2" ? "m²" : u === "m" ? "m" : "un");
 
 // perda típica no preparo — evita que o usuário tenha que adivinhar
 export const PERDAS = [

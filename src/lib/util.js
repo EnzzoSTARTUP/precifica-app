@@ -1,4 +1,4 @@
-export const UNIDADES = ["kg", "g", "L", "ml", "un", "m2"];
+export const UNIDADES = ["kg", "g", "L", "ml", "un", "m", "m2"];
 
 export const hoje = () => new Date().toISOString().slice(0, 10);
 

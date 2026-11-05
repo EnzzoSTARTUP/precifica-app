@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { calc, calcFixasPct, custoInsumo, DEFAULT_CFG } from "../src/lib/calc.js";
+import { calc, calcFixasPct, custoInsumo, baseUnit, DEFAULT_CFG } from "../src/lib/calc.js";
 
 // Implementação ANTIGA, copiada literalmente de src/App.jsx (commit 5fa67c1) — referência de regressão.
 function calcAntigo(p, insumos, canais, cfg) {
@@ -97,4 +97,15 @@ test("valores conhecidos (caso do arroz 3x e markup)", () => {
   quase(r.precos[0].markup, 1 / (1 - 0.25), "markup salão 25%");
   assert.equal(r.precos[2].viavel, false);
   quase(calcFixasPct(cfgs.auto), (36796 / 450000) * 100, "fixas auto");
+});
+
+test("tecido por metro: custo por metro e rótulo da unidade", () => {
+  const tecido = { id: "t1", nome: "Malha", unidade: "m", precoPacote: 45, qtdPacote: 10 };
+  quase(custoInsumo(tecido), 4.5, "R$/m");
+  assert.equal(baseUnit("m"), "m");
+  assert.equal(baseUnit("m2"), "m²");
+  const camiseta = { itens: [{ insumoId: "t1", qtd: 1.2, perda: 10 }], rendimento: 1, maoDeObra: 12, outrosCustos: 0, precosCanal: {} };
+  const r = calc(camiseta, { insumos: [tecido], canais: [{ id: "c", nome: "Loja", comissao: 0, embalagem: 0 }], cfg: DEFAULT_CFG });
+  quase(r.custoInsumos, (1.2 / 0.9) * 4.5, "1,2 m com 10% de perda");
+  quase(r.custoUnid, (1.2 / 0.9) * 4.5 + 12, "custo da peça");
 });
