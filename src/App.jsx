@@ -101,7 +101,7 @@ export default function App({ perfil }) {
       <style>{globalCss}</style>
 
       <nav className="nav-side">
-        <Marca />
+        <Marca nome={cfg.nomeEmpresa} onSave={(n) => saveCfg({ ...cfg, nomeEmpresa: n })} />
         <div style={{ marginTop: 30 }}>
           {ABAS.map((t) => (
             <button key={t.id} className={`nav-item ${tab === t.id && !produtoAberto ? "on" : ""}`}
@@ -123,7 +123,7 @@ export default function App({ perfil }) {
       <div className="app-wrap">
         <div className="shell">
           <div className="brand-mobile" style={{ marginBottom: 26, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <Marca />
+            <Marca fixa />
             {perfil?.admin && <a href="/admin" className="lbl" style={{ color: C.ink, textDecoration: "underline", marginLeft: "auto", marginRight: 14 }}>Admin</a>}
             <button className="btn lbl" onClick={() => setConfirmarSair(true)}
               style={{ background: "none", border: "none", padding: 0, color: C.ink45, textDecoration: "underline" }}>
@@ -197,10 +197,34 @@ export default function App({ perfil }) {
   );
 }
 
-function Marca() {
+// Nome da empresa do cliente: campo editável no lugar da marca. Fica cinza (placeholder) até ser preenchido.
+// Salva ao sair do campo (ou Enter), não a cada tecla, para não gerar uma gravação por letra.
+function Marca({ nome, onSave, fixa }) {
+  const [v, setV] = useState(nome || "");
+  useEffect(() => { setV(nome || ""); }, [nome]);
+  const commit = () => { const t = v.trim().slice(0, 60); if (t !== (nome || "")) onSave(t); setV(t); };
+  if (fixa) {
+    // cabeçalho do conteúdo: marca Prezo fixa
+    return (
+      <div>
+        <div className="serif" style={{ fontSize: 24, lineHeight: 1 }}>Prezo</div>
+        <div className="lbl" style={{ marginTop: 4, fontSize: 12.5 }}>Custo · Markup · Preço</div>
+      </div>
+    );
+  }
   return (
     <div>
-      <div className="serif" style={{ fontSize: 24, lineHeight: 1 }}>Prezo</div>
+      <input
+        value={v}
+        onChange={(e) => setV(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.blur(); }}
+        placeholder="Nome da sua empresa"
+        maxLength={60}
+        aria-label="Nome da sua empresa"
+        className="serif"
+        style={{ fontSize: 19, lineHeight: 1.2, width: "min(212px, 58vw)", border: "none", borderBottom: `1px dashed ${v ? "transparent" : C.rule}`, background: "transparent", padding: "0 0 2px", textOverflow: "ellipsis" }}
+      />
       <div className="lbl" style={{ marginTop: 4, fontSize: 12.5 }}>Custo · Markup · Preço</div>
     </div>
   );

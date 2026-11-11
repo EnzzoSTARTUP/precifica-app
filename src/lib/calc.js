@@ -3,7 +3,7 @@
 
 export const DEFAULT_CFG = {
   lucro: 15, impostos: 6, modoFixas: "auto", despesasFixasManual: 0, faturamentoMedio: 0,
-  despesas: [],
+  despesas: [], nomeEmpresa: "",
 };
 
 export const fator = (u) => (u === "kg" || u === "L" ? 1000 : 1);
